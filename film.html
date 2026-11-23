@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>فیلم نمایشی: ربات فروش در دایرکت</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Tahoma,"Segoe UI",sans-serif;background:radial-gradient(circle at 30% 20%,#2a1a4e,#0f0a1f 70%);color:#fff;min-height:100vh}
+.stage{display:flex;gap:28px;justify-content:center;align-items:center;padding:20px 16px 90px;flex-wrap:wrap;min-height:100vh}
+.col{display:flex;flex-direction:column;align-items:center;gap:14px}
+.cap{min-height:54px;max-width:390px;width:100%;text-align:center;font-size:16px;line-height:1.8;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:10px 14px;transition:opacity .4s}
+.cap b{color:#ffd76a}
+.phone{width:390px;max-width:100%;height:700px;max-height:calc(100vh - 190px);min-height:560px;background:#fff;border-radius:34px;border:9px solid #0b0b0b;box-shadow:0 20px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden;color:#1c1e21;position:relative}
+.view{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .5s,transform .5s}
+.view.hide{opacity:0;pointer-events:none;transform:scale(.97)}
+/* story */
+.story{background:linear-gradient(160deg,#833ab4,#fd1d1d,#fcb045);align-items:center;justify-content:center;color:#fff;position:relative}
+.story .bar{position:absolute;top:12px;left:12px;right:12px;height:3px;background:rgba(255,255,255,.4);border-radius:2px;overflow:hidden}
+.story .bar i{display:block;height:100%;width:0;background:#fff}
+.story .who{position:absolute;top:24px;right:14px;display:flex;gap:8px;align-items:center;font-size:13px}
+.story .who .a{width:30px;height:30px;border-radius:50%;background:#fff;color:#833ab4;display:flex;align-items:center;justify-content:center;font-weight:bold}
+.story .em{font-size:130px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.3))}
+.story .nm{font-weight:bold;font-size:22px;margin-top:8px}.story .pr{font-size:16px;opacity:.95;margin-top:4px}
+.story .stk{position:absolute;bottom:70px;background:#fff;color:#2b6cff;border-radius:14px;padding:11px 22px;font-size:15px;font-weight:bold;border:0;font-family:inherit;box-shadow:0 3px 12px rgba(0,0,0,.3)}
+.story .stk.pulse{animation:pl 1s infinite}@keyframes pl{50%{transform:scale(1.08)}}
+/* chat */
+.top{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #eee;background:#fff}
+.av{width:38px;height:38px;border-radius:50%;background:linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;flex:none}
+.top b{font-size:15px}.top small{display:block;color:#8e8e8e;font-size:11px}
+#chat{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#fafafa;scroll-behavior:smooth}
+.m{max-width:84%;padding:9px 13px;border-radius:18px;font-size:14px;line-height:1.75;white-space:pre-wrap;word-break:break-word;animation:pop .3s}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.bot{background:#efefef;align-self:flex-start;border-bottom-left-radius:4px}
+.me{background:linear-gradient(135deg,#7b3ff2,#a23cf0);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.typing{background:#efefef;align-self:flex-start;border-radius:18px;padding:12px 16px;display:flex;gap:5px}
+.typing i{width:7px;height:7px;border-radius:50%;background:#999;animation:b 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
+.card{align-self:flex-start;width:262px;background:#fff;border:1px solid #e3e3e3;border-radius:16px;overflow:hidden;animation:pop .4s}
+.card .pic{height:112px;display:flex;align-items:center;justify-content:center;font-size:56px;background:linear-gradient(135deg,#f1eefb,#e6f0ff)}
+.card .b{padding:10px 12px}.card .n{font-weight:bold;font-size:14px}.card .p{color:#555;font-size:13px;margin:2px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid #c9c9c9;background:#fff;border-radius:14px;padding:5px 11px;font-size:12.5px;font-family:inherit}
+.chip.off{opacity:.4;text-decoration:line-through}.chip.few{border-color:#f0b34a;background:#fff8e8}
+.chip.sel{background:#7b3ff2;color:#fff;border-color:#7b3ff2}
+.cart{align-self:flex-start;width:262px;background:#fff;border:1px dashed #b79af5;border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.9;animation:pop .4s}
+.cart .tot{border-top:1px solid #eee;margin-top:5px;padding-top:5px;font-weight:bold}
+.inp{display:flex;gap:8px;padding:10px 12px;background:#fff;border-top:1px solid #eee;align-items:center}
+.fake{flex:1;border:1px solid #ddd;border-radius:20px;padding:10px 14px;font-size:14px;min-height:42px;color:#222}
+.fake:empty:before{content:"پیام بنویسید...";color:#aaa}
+.sendb{background:#7b3ff2;color:#fff;border-radius:20px;padding:10px 16px;font-size:14px}
+/* tap */
+.tap{position:absolute;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.55);border:3px solid #fff;transform:translate(-50%,-50%) scale(.3);opacity:0;pointer-events:none;z-index:9}
+.tap.go{animation:tp .7s}@keyframes tp{0%{opacity:1;transform:translate(-50%,-50%) scale(.3)}70%{opacity:.9;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}}
+/* side */
+.side{width:360px;max-width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:16px}
+.side h3{font-size:14px;margin-bottom:8px;color:#ffd76a}
+.side h3 small{color:#bbb;font-weight:normal}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:12px}
+th,td{padding:5px 4px;border-bottom:1px solid rgba(255,255,255,.12);text-align:right}
+th{color:#aaa;font-weight:normal}
+.flash{animation:fl 1.6s}@keyframes fl{0%{background:rgba(80,220,120,.5)}100%{background:transparent}}
+.zero{color:#888;text-decoration:line-through}.low{color:#ff8a7a}
+#feed{display:flex;flex-direction:column;gap:7px;min-height:150px}
+.ev{background:rgba(255,255,255,.1);border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.7;animation:pop .4s;border-right:4px solid #6c8cff}
+.ev.ok{border-color:#4cd47a}.ev.warn{border-color:#ffa94d}
+.ev small{display:block;color:#bbb;font-size:11px}
+/* controls */
+.ctl{position:fixed;bottom:0;left:0;right:0;background:rgba(10,6,24,.92);backdrop-filter:blur(8px);border-top:1px solid rgba(255,255,255,.15);padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:center;z-index:20}
+.ctl button{background:#7b3ff2;color:#fff;border:0;border-radius:20px;padding:9px 18px;font-family:inherit;font-size:14px;cursor:pointer}
+.ctl button.g{background:rgba(255,255,255,.15)}
+.prog{flex:1;max-width:420px;height:6px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#feda75,#d62976,#7b3ff2)}
+.end{position:absolute;inset:0;background:rgba(15,10,31,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .6s;z-index:10;color:#fff}
+.end.on{opacity:1;pointer-events:auto}
+.end h2{font-size:20px;color:#ffd76a}.end p{font-size:14px;line-height:2}
+.end button{background:#7b3ff2;color:#fff;border:0;border-radius:20px;padding:10px 22px;font-family:inherit;font-size:14px;cursor:pointer}
+.note{font-size:11.5px;color:#cbb8ff;text-align:center;max-width:390px}
+/* ===== ظاهر دایرکت اینستاگرام، بدون قاب گوشی ===== */
+.phone{direction:ltr;width:420px;max-width:100%;height:calc(100vh - 210px);height:calc(100dvh - 210px);min-height:430px;max-height:none;border:0;border-radius:0;box-shadow:0 0 0 1px rgba(255,255,255,.12),0 16px 50px rgba(0,0,0,.5);background:#fff;font-family:-apple-system,"SF Pro Text","Segoe UI",Tahoma,sans-serif;color:#000}
+.top{gap:12px;padding:12px 14px 10px;border-bottom:1px solid #efefef;background:#fff}
+.top .ic{width:26px;height:26px;flex:none;color:#000}
+.top .av{width:36px;height:36px;font-size:15px}
+.top .tt{flex:1;min-width:0}.top .tt b{display:block;font-size:16px;font-weight:600}.top .tt small{font-size:13px;color:#8e8e8e;display:block}
+#chat{background:#fff;padding:8px 12px 10px;gap:0}
+.row{display:flex;align-items:flex-end;gap:8px;margin-top:2px;animation:pop .25s}
+.r-me{justify-content:flex-end}
+.av2{width:28px;height:28px;border-radius:50%;background:linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);color:#fff;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;visibility:hidden;flex:none}
+.r-bot.showav .av2{visibility:visible}
+.m{max-width:74%;padding:10px 15px;border-radius:22px;font-size:16px;line-height:1.55;animation:none}
+.bot{background:#efefef;color:#000;align-self:auto;border-radius:22px}
+.me{background:linear-gradient(180deg,#7a3ff5,#9a52f2);color:#fff;align-self:auto;border-radius:22px}
+.typing{padding:14px 16px;align-self:auto;border-radius:22px}
+.card{width:274px;background:#efefef;border:0;border-radius:22px;animation:none;align-self:auto}
+.card .pic{height:118px;background:linear-gradient(135deg,#e4dcff,#d6e8ff)}
+.card .b{padding:13px 14px 14px}
+.card .n{font-weight:700;font-size:18px;direction:ltr;text-align:left}
+.card .p{color:#8a8a8a;font-size:14px;margin:1px 0 12px;direction:rtl;text-align:left}
+.card .chips{gap:8px}
+.card .chip{background:#fff;border:0;border-radius:12px;padding:10px 16px;font-size:15px;font-weight:600;color:#000;min-width:48px;text-align:center}
+.card .chip.few{background:#fff6e2}
+.card .chip.off{opacity:.35}
+.card .chip.sel{background:#7b3ff2;color:#fff}
+.cart{width:274px;background:#efefef;border:0;border-radius:22px;padding:13px 15px;font-size:15px;direction:rtl;text-align:right;animation:none;align-self:auto}
+.cart .tot{border-top:1px solid #dcdcdc}
+.inp{border-top:0;padding:6px 12px 14px;background:#fff}
+.pill{display:flex;align-items:center;gap:10px;background:#efefef;border-radius:26px;padding:5px 12px 5px 5px;width:100%}
+.pill .cam{width:38px;height:38px;border-radius:50%;background:#6b4df5;display:flex;align-items:center;justify-content:center;flex:none}
+.pill .cam svg{width:21px;height:21px}
+.pill .fake{border:0;background:transparent;padding:8px 0;font-size:16px;min-height:0;color:#000;direction:rtl;text-align:left;unicode-bidi:plaintext}
+.pill .fake:empty:before{content:"Message...";color:#8e8e8e}
+.pill .icons{display:flex;gap:12px;color:#000}.pill .icons svg{width:25px;height:25px}
+.pill .sendb{background:transparent;color:#0a66ff;font-weight:600;font-size:16px;padding:0 6px;border-radius:0;display:none}
+.pill.typ .icons{display:none}.pill.typ .sendb{display:block}
+.intro{display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 0 4px;gap:3px}
+.intro .bigav{width:88px;height:88px;border-radius:50%;background:linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);color:#fff;font-size:36px;font-weight:bold;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.intro .in{font-weight:700;font-size:20px}.intro .iu{color:#8e8e8e;font-size:15px}.intro .is{color:#8e8e8e;font-size:14px}
+.intro .vp{margin-top:12px;background:#efefef;border-radius:10px;padding:9px 18px;font-weight:600;font-size:15px}
+.stamp{text-align:center;color:#8e8e8e;font-size:13px;margin:22px 0 10px}
+@media (max-width:860px){.cap{font-size:14px;min-height:46px}.phone{width:100%;height:calc(100dvh - 190px)}.stage{padding:10px 0 80px;gap:14px}.note,.side{margin:0 12px;width:calc(100% - 24px)}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="col">
+    <div class="cap" id="cap"></div>
+    <div class="phone">
+      <div class="view story" id="storyV">
+        <div class="bar"><i id="sbar"></i></div>
+        <div class="who"><div class="a">ف</div><span>فروشگاه تست · ۲ ساعت پیش</span></div>
+        <div class="em">👕</div><div class="nm">تیشرت مردانه</div><div class="pr">۴۵۰٬۰۰۰ تومان</div>
+        <button class="stk" id="stk">🔗 سفارش بده</button>
+      </div>
+      <div class="view hide" id="chatV">
+        <div class="top">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+          <div class="av">ف</div>
+          <div class="tt"><b>فروشگاه تست</b><small>Business chat</small></div>
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="3"/><path d="M16 10l6-3v10l-6-3z"/></svg>
+        </div>
+        <div id="chat"></div>
+        <div class="inp"><div class="pill" id="pill">
+          <span class="cam"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><rect x="3" y="7" width="18" height="13" rx="3"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8.5 7l1.2-2.5h4.6L15.5 7"/></svg></span>
+          <div class="fake" id="fake"></div>
+          <span class="icons">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          </span>
+          <span class="sendb">Send</span>
+        </div></div>
+      </div>
+      <div class="tap" id="tap"></div>
+    </div>
+    <div class="note">این فیلم نمایشی است: گفت‌وگو از پیش نوشته شده تا نتیجه‌ی نهایی را ببینید. در نسخه‌ی واقعی هوش مصنوعی جواب می‌دهد و موجودی از انبار (دوک) خوانده می‌شود.</div>
+  </div>
+
+  <div class="side">
+    <h3>پشت صحنه · انبار زنده <small>(مثل دوک)</small></h3>
+    <table id="stock"></table>
+    <h3>اتفاق‌های لحظه‌ای</h3>
+    <div id="feed"></div>
+  </div>
+</div>
+
+<div class="end" id="end" style="position:fixed"><h2>نتیجه</h2><p>مشتری فقط حرف زد.<br>ربات قیمت و موجودی را <b>از انبار</b> گفت، سؤال نامطمئن را به ادمین داد،<br>و سفارش با کم‌شدن خودکار موجودی ثبت شد.</p><button id="replay">↻ دوباره ببین</button></div>
+<div class="ctl">
+  <button id="pp">⏸ توقف</button>
+  <button class="g" id="rs">↻ از اول</button>
+  <div class="prog"><i id="prog"></i></div>
+  <button class="g" id="sp">سرعت ۱×</button>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const nf=n=>Number(n).toLocaleString('fa-IR');
+const fmt=n=>nf(n)+' تومان';
+let run=0,paused=false,speed=1,total=1,elapsed=0;
+const STOCK0=[
+ {c:'TS1',n:'تیشرت مردانه',s:{S:5,M:8,L:3,XL:0}},
+ {c:'HD2',n:'هودی کلاه‌دار',s:{M:4,L:2,XL:6}},
+ {c:'JN3',n:'شلوار جین',s:{'30':3,'32':5,'34':2}},
+ {c:'SH4',n:'کفش کتانی',s:{'40':2,'41':4,'42':0}},
+];
+let STOCK;
+function renderStock(flashCode){
+  let h='<tr><th>کد</th><th>محصول</th><th>سایز : تعداد</th></tr>';
+  STOCK.forEach(p=>{
+    const sz=Object.entries(p.s).map(([k,v])=>`<span class="${v==0?'zero':v<=2?'low':''}">${k}:${nf(v)}</span>`).join(' · ');
+    h+=`<tr class="${flashCode==p.c?'flash':''}"><td>${p.c}</td><td>${p.n}</td><td>${sz}</td></tr>`;
+  });
+  $('stock').innerHTML=h;
+}
+class Abort extends Error{}
+async function sleep(ms){
+  let left=ms;const my=run;
+  while(left>0){
+    if(my!==run)throw new Abort();
+    if(paused){await new Promise(r=>setTimeout(r,80));continue}
+    const step=Math.min(40,left);await new Promise(r=>setTimeout(r,step/speed));left-=step;elapsed+=step;
+    $('prog').style.width=Math.min(100,elapsed/total*100)+'%';
+  }
+  if(my!==run)throw new Abort();
+}
+const cap=(h)=>{const c=$('cap');c.style.opacity=0;setTimeout(()=>{c.innerHTML=h;c.style.opacity=1},200)};
+function feed(txt,cls,sub){const e=document.createElement('div');e.className='ev '+(cls||'');e.innerHTML=txt+(sub?`<small>${sub}</small>`:'');$('feed').prepend(e)}
+function scroll(){const c=$('chat');c.scrollTop=c.scrollHeight}
+function tap(el){const ph=document.querySelector('.phone').getBoundingClientRect(),r=el.getBoundingClientRect(),t=$('tap');
+  t.style.left=(r.left+r.width/2-ph.left)+'px';t.style.top=(r.top+r.height/2-ph.top)+'px';t.classList.remove('go');void t.offsetWidth;t.classList.add('go')}
+function refreshGroups(){
+  const rows=[...document.querySelectorAll('#chat > .row')];
+  rows.forEach((r,i)=>{
+    const prev=rows[i-1],next=rows[i+1];
+    r.style.marginTop=(!prev||prev.className.split(' ')[1]!==r.className.split(' ')[1])?'12px':'2px';
+    if(r.classList.contains('r-bot'))r.classList.toggle('showav',!next||!next.classList.contains('r-bot'));
+  });
+}
+function pushRow(node,who){
+  const r=document.createElement('div');r.className='row r-'+(who||'bot');
+  if(who!=='me'){const a=document.createElement('div');a.className='av2';a.textContent='ف';r.appendChild(a)}
+  r.appendChild(node);$('chat').appendChild(r);refreshGroups();scroll();return r;
+}
+function intro(){
+  const d=document.createElement('div');d.className='intro';
+  d.innerHTML='<div class="bigav">ف</div><div class="in">فروشگاه تست</div><div class="iu">shop.test</div><div class="is">128 followers · 10 posts</div><div class="is">You don\'t follow each other on Instagram</div><div class="vp">View profile</div>';
+  $('chat').appendChild(d);
+  const t=document.createElement('div');t.className='stamp';t.textContent=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});$('chat').appendChild(t);
+}
+async function typeMe(text){
+  const f=$('fake'),pl=$('pill');f.textContent='';pl.classList.remove('typ');
+  for(const ch of text){f.textContent+=ch;pl.classList.add('typ');await sleep(55)}
+  await sleep(350);f.textContent='';pl.classList.remove('typ');
+  const d=document.createElement('div');d.className='m me';d.dir='auto';d.textContent=text;pushRow(d,'me');await sleep(500);
+}
+async function bot(text,wait){
+  const ty=document.createElement('div');ty.className='m bot typing';ty.innerHTML='<i></i><i></i><i></i>';const row=pushRow(ty,'bot');
+  await sleep(wait||Math.min(1500,700+text.length*9));row.remove();
+  const d=document.createElement('div');d.className='m bot';d.dir='auto';d.textContent=text;pushRow(d,'bot');await sleep(500);
+}
+async function productCard(){
+  const d=document.createElement('div');d.className='card';
+  d.innerHTML=`<div class="pic">👕</div><div class="b"><div class="n">تیشرت مردانه</div><div class="p">${fmt(450000)} · کد TS1</div><div class="chips"><span class="chip">S</span><span class="chip">M</span><span class="chip few" id="chipL">L ⚠</span><span class="chip off">XL</span></div></div>`;
+  pushRow(d,'bot');await sleep(900);
+}
+async function cartCard(){
+  const d=document.createElement('div');d.className='cart';
+  d.innerHTML=`<b>🛒 سفارش شما</b><br>• تیشرت مردانه (L) × ۱ — ${fmt(450000)}<div class="tot">کالاها: ${fmt(450000)}<br>ارسال: ${fmt(60000)}<br>جمع: ${fmt(510000)}</div>`;
+  pushRow(d,'bot');await sleep(900);
+}
+
+async function film(){
+  const my=run;STOCK=JSON.parse(JSON.stringify(STOCK0));renderStock();
+  $('chat').innerHTML='';intro();$('pill').classList.remove('typ');$('feed').innerHTML='';$('fake').textContent='';$('end').classList.remove('on');
+  $('storyV').classList.remove('hide');$('chatV').classList.add('hide');$('sbar').style.width='0';$('sbar').style.transition='none';$('stk').classList.remove('pulse');
+  elapsed=0;
+  try{
+    cap('<b>۱.</b> مشتری استوری فروشگاه را می‌بیند');
+    await sleep(600);$('sbar').style.transition='width 3.2s linear';$('sbar').style.width='100%';
+    await sleep(1800);cap('<b>۲.</b> روی استیکر «سفارش بده» می‌زند');$('stk').classList.add('pulse');await sleep(1500);
+    tap($('stk'));await sleep(700);
+    $('storyV').classList.add('hide');$('chatV').classList.remove('hide');await sleep(800);
+    feed('مشتری از لینک استوری آمد','ok','محصول TS1 · فروشگاه تست');
+
+    cap('<b>۳.</b> ربات همان لحظه محصول را نشان می‌دهد');
+    await bot('سلام! 🌸 از استوری آمدید؟ این هم محصول:',1000);await productCard();
+
+    cap('<b>۴.</b> مشتری مثل آدم عادی سؤال می‌کند');
+    await typeMe('سلام، سایز L دارید؟');
+    cap('<b>۵.</b> ربات موجودی را <b>از انبار می‌خواند</b>، حدس نمی‌زند');
+    feed('ربات موجودی خواند: TS1 سایز L','','موجودی در انبار: ۳ عدد');
+    await bot('بله، سایز L موجوده ✅\nولی فقط ۳ عدد مانده ⚠️',1100);
+
+    cap('<b>۶.</b> سؤال دربارهٔ ارسال');
+    await typeMe('ارسال به شیراز چقدر می‌شه؟');
+    await bot('ارسال به همه‌ی شهرها انجام می‌شود (۲ تا ۵ روز کاری).\nهزینه‌ی ارسال '+fmt(60000)+' است.\nتیشرت + ارسال = '+fmt(510000));
+
+    cap('<b>۷.</b> سؤالی که جوابش را نمی‌داند: <b>حدس نمی‌زند، به ادمین می‌دهد</b>');
+    await typeMe('تخفیف هم دارید؟');
+    feed('پیام برای ادمین فرستاده شد','warn','«تخفیف هم دارید؟» · ربات مطمئن نبود و حدس نزد');
+    await bot('این مورد را مطمئن نیستم و حدس نمی‌زنم. پیام شما برای ادمین فروشگاه فرستاده شد تا جواب دقیق بدهد. 🙏',1300);
+
+    cap('<b>۸.</b> مشتری تصمیم می‌گیرد');
+    await typeMe('همین L رو می‌خوام');
+    tap($('chipL'));$('chipL').classList.add('sel');await sleep(500);
+    await bot('✅ «تیشرت مردانه» سایز L به سفارش اضافه شد.',900);await cartCard();
+
+    cap('<b>۹.</b> ثبت سفارش: نام، موبایل، آدرس');
+    await typeMe('ثبت نهایی');
+    await bot('نام و نام خانوادگی را بفرستید:',700);
+    await typeMe('رضا محمدی');
+    await bot('شماره‌ی موبایل:',600);
+    await typeMe('۰۹۱۲۰۰۰۰۰۰۰۰');
+    await bot('آدرس کامل:',600);
+    await typeMe('شیراز، بلوار تست');
+
+    cap('<b>۱۰.</b> سفارش در انبار (دوک) ثبت می‌شود و <b>موجودی کم می‌شود</b>');
+    STOCK[0].s.L=2;renderStock('TS1');
+    feed('سفارش ۱۰۰۱ در دوک ثبت شد','ok','منبع: اینستاگرام · موجودی TS1 سایز L: ۳ ← ۲ · ۵۱۰٬۰۰۰ تومان');
+    await bot('✅ سفارش شما ثبت شد!\nشماره‌ی سفارش: ۱۰۰۱\n• تیشرت مردانه (L) × ۱\nمبلغ قابل پرداخت: '+fmt(510000)+'\n\nپرداخت: کارت‌به‌کارت و ارسال رسید همین‌جا.',1300);
+    await sleep(2500);
+    cap('<b>پایان.</b> این‌ها بدون دخالت آدم انجام شد');
+    $('end').classList.add('on');
+  }catch(e){if(!(e instanceof Abort))throw e}
+}
+
+function start(){run++;paused=false;$('pp').textContent='⏸ توقف';film()}
+$('pp').onclick=()=>{paused=!paused;$('pp').textContent=paused?'▶ ادامه':'⏸ توقف'};
+$('rs').onclick=start;
+$('sp').onclick=()=>{speed=speed==1?1.5:speed==1.5?2:speed==2?4:1;$('sp').textContent='سرعت '+nf(speed)+'×'};
+$('replay').onclick=start;
+// مدت تقریبی فیلم برای نوار پیشرفت (میلی‌ثانیه، با سرعت ۱)
+total=62000;
+window.addEventListener('load',()=>setTimeout(start,400));
+</script>
+</body>
+</html>
