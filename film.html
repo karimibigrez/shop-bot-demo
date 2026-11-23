@@ -118,6 +118,18 @@ th{color:#aaa;font-weight:normal}
 .intro .in{font-weight:700;font-size:20px}.intro .iu{color:#8e8e8e;font-size:15px}.intro .is{color:#8e8e8e;font-size:14px}
 .intro .vp{margin-top:12px;background:#efefef;border-radius:10px;padding:9px 18px;font-weight:600;font-size:15px}
 .stamp{text-align:center;color:#8e8e8e;font-size:13px;margin:22px 0 10px}
+.cart .cinfo{border-top:1px dashed #c9c9c9;margin-top:6px;padding-top:6px;line-height:1.8}
+.cart .h2{font-size:12.5px;color:#8a6d00;background:#fff6e2;border-radius:10px;padding:6px 9px;margin-top:7px;line-height:1.7}
+.pbtn{display:block;width:100%;margin-top:7px;border:0;border-radius:12px;padding:10px;font-family:inherit;font-size:15px;font-weight:600;background:#fff;color:#000}
+.pbtn.pri{background:#7b3ff2;color:#fff}
+.lnk{color:#0a66ff;text-decoration:underline;direction:ltr;display:inline-block}
+.gate{position:absolute;inset:0;z-index:5;background:#eef2f7;display:none;flex-direction:column;direction:rtl;font-family:Tahoma,"Segoe UI",sans-serif;color:#222}
+.gate.on{display:flex}
+.gate .gh{background:#0b6b3a;color:#fff;padding:16px;font-size:15px;font-weight:bold;text-align:center}
+.gate .gb{background:#fff;margin:14px;border-radius:14px;padding:16px;font-size:14px;line-height:2}
+.gate .amt{font-size:22px;font-weight:bold;color:#0b6b3a;text-align:center;margin:4px 0 10px}
+.gate .fld{border:1px solid #d5d5d5;border-radius:10px;padding:9px 12px;margin:6px 0;background:#fafafa;direction:ltr;text-align:left;color:#555}
+.gate .demo{font-size:12px;color:#a33;text-align:center;margin-top:6px}
 @media (max-width:860px){.cap{font-size:14px;min-height:46px}.phone{width:100%;height:calc(100dvh - 190px)}.stage{padding:10px 0 80px;gap:14px}.note,.side{margin:0 12px;width:calc(100% - 24px)}}
 </style>
 </head>
@@ -152,6 +164,7 @@ th{color:#aaa;font-weight:normal}
           <span class="sendb">Send</span>
         </div></div>
       </div>
+      <div class="gate" id="gate"></div>
       <div class="tap" id="tap"></div>
     </div>
     <div class="note">این فیلم نمایشی است: گفت‌وگو از پیش نوشته شده تا نتیجه‌ی نهایی را ببینید. در نسخه‌ی واقعی هوش مصنوعی جواب می‌دهد و موجودی از انبار (دوک) خوانده می‌شود.</div>
@@ -250,9 +263,27 @@ async function cartCard(){
   pushRow(d,'bot');await sleep(900);
 }
 
+async function invoiceCard(){
+  const d=document.createElement('div');d.className='cart';
+  d.innerHTML=`<b>🧾 فاکتور شما (پیش‌نویس)</b><br>• تیشرت مردانه (L) × ۱ — ${fmt(450000)}<div class="tot">کالاها: ${fmt(450000)}<br>ارسال: ${fmt(60000)}<br>جمع: ${fmt(510000)}</div><div class="cinfo">👤 رضا محمدی<br>📱 ۰۹۱۲۰۰۰۰۰۰۰۰<br>📍 شیراز، بلوار تست</div><div class="h2">اطلاعات را بررسی کنید. تا «ثبت نهایی» نزنید سفارش قطعی نمی‌شود.</div>`;
+  pushRow(d,'bot');await sleep(900);
+}
+async function payChoice(){
+  const d=document.createElement('div');d.className='cart';
+  d.innerHTML='<b>روش پرداخت</b><button class="pbtn pri" id="pb1">💳 پرداخت آنلاین (درگاه بانکی)</button><button class="pbtn" id="pb2">🏦 کارت‌به‌کارت (ارسال رسید)</button>';
+  pushRow(d,'bot');await sleep(900);
+}
+async function linkBubble(){
+  const d=document.createElement('div');d.className='m bot';d.innerHTML='<span class="lnk" id="lk">pay.shop.test/۱۰۰۱</span>';pushRow(d,'bot');await sleep(600);
+}
+async function gateOpen(){
+  $('gate').innerHTML=`<div class="gh">درگاه پرداخت امن</div><div class="gb"><div style="text-align:center">فروشگاه تست · سفارش ۱۰۰۱</div><div class="amt">${fmt(510000)}</div><div class="fld">6037 •••• •••• 1234</div><div class="fld">CVV2 ••• · 12/05</div><button class="pbtn pri" id="gpay">پرداخت</button><div class="demo">صفحه‌ی نمایشی است؛ پول واقعی کم نمی‌شود.</div></div>`;
+  $('gate').classList.add('on');await sleep(300);
+}
+
 async function film(){
   const my=run;STOCK=JSON.parse(JSON.stringify(STOCK0));renderStock();
-  $('chat').innerHTML='';intro();$('pill').classList.remove('typ');$('feed').innerHTML='';$('fake').textContent='';$('end').classList.remove('on');
+  $('gate').classList.remove('on');$('chat').innerHTML='';intro();$('pill').classList.remove('typ');$('feed').innerHTML='';$('fake').textContent='';$('end').classList.remove('on');
   $('storyV').classList.remove('hide');$('chatV').classList.add('hide');$('sbar').style.width='0';$('sbar').style.transition='none';$('stk').classList.remove('pulse');
   elapsed=0;
   try{
@@ -272,21 +303,26 @@ async function film(){
     feed('ربات موجودی خواند: TS1 سایز L','','موجودی در انبار: ۳ عدد');
     await bot('بله، سایز L موجوده ✅\nولی فقط ۳ عدد مانده ⚠️',1100);
 
-    cap('<b>۶.</b> سؤال دربارهٔ ارسال');
+    cap('<b>۶.</b> رنگ یا سایز تمام شده؟ <b>جایگزین پیشنهاد می‌دهد</b>، نه فقط «نیست»');
+    await typeMe('مشکی دارید؟');
+    feed('ربات رنگ‌ها را از انبار خواند','','TS1: مشکی ۰ · سفید ۲ · طوسی ۴');
+    await bot('رنگ مشکی این تیشرت تمام شده 😔\nولی سفید و طوسی موجود است ✅\n\nمدل مشابه: هودی کلاه‌دار (کد HD2) · '+fmt(890000),1300);
+
+    cap('<b>۷.</b> سؤال دربارهٔ ارسال');
     await typeMe('ارسال به شیراز چقدر می‌شه؟');
     await bot('ارسال به همه‌ی شهرها انجام می‌شود (۲ تا ۵ روز کاری).\nهزینه‌ی ارسال '+fmt(60000)+' است.\nتیشرت + ارسال = '+fmt(510000));
 
-    cap('<b>۷.</b> سؤالی که جوابش را نمی‌داند: <b>حدس نمی‌زند، به ادمین می‌دهد</b>');
+    cap('<b>۸.</b> سؤالی که جوابش را نمی‌داند: <b>حدس نمی‌زند، به ادمین می‌دهد</b>');
     await typeMe('تخفیف هم دارید؟');
     feed('پیام برای ادمین فرستاده شد','warn','«تخفیف هم دارید؟» · ربات مطمئن نبود و حدس نزد');
     await bot('این مورد را مطمئن نیستم و حدس نمی‌زنم. پیام شما برای ادمین فروشگاه فرستاده شد تا جواب دقیق بدهد. 🙏',1300);
 
-    cap('<b>۸.</b> مشتری تصمیم می‌گیرد');
+    cap('<b>۹.</b> مشتری تصمیم می‌گیرد: همین تیشرت، سایز L');
     await typeMe('همین L رو می‌خوام');
     tap($('chipL'));$('chipL').classList.add('sel');await sleep(500);
     await bot('✅ «تیشرت مردانه» سایز L به سفارش اضافه شد.',900);await cartCard();
 
-    cap('<b>۹.</b> ثبت سفارش: نام، موبایل، آدرس');
+    cap('<b>۱۰.</b> نام، موبایل و آدرس را می‌گیرد');
     await typeMe('ثبت نهایی');
     await bot('نام و نام خانوادگی را بفرستید:',700);
     await typeMe('رضا محمدی');
@@ -295,12 +331,30 @@ async function film(){
     await bot('آدرس کامل:',600);
     await typeMe('شیراز، بلوار تست');
 
-    cap('<b>۱۰.</b> سفارش در انبار (دوک) ثبت می‌شود و <b>موجودی کم می‌شود</b>');
+    cap('<b>۱۱.</b> <b>فاکتور کامل</b> را نشان می‌دهد تا مشتری اطلاعاتش را چک کند');
+    await bot('این فاکتور کامل سفارش شماست. لطفاً نام، موبایل و آدرس را با دقت چک کنید:',900);
+    await invoiceCard();
+    await sleep(2200);
+    cap('<b>۱۲.</b> فقط با «<b>ثبت نهایی</b>» سفارش قطعی می‌شود');
+    await typeMe('✅ ثبت نهایی');
     STOCK[0].s.L=2;renderStock('TS1');
-    feed('سفارش ۱۰۰۱ در دوک ثبت شد','ok','منبع: اینستاگرام · موجودی TS1 سایز L: ۳ ← ۲ · ۵۱۰٬۰۰۰ تومان');
-    await bot('✅ سفارش شما ثبت شد!\nشماره‌ی سفارش: ۱۰۰۱\n• تیشرت مردانه (L) × ۱\nمبلغ قابل پرداخت: '+fmt(510000)+'\n\nپرداخت: کارت‌به‌کارت و ارسال رسید همین‌جا.',1300);
+    feed('سفارش ۱۰۰۱ ثبت شد · موجودی رزرو شد','ok','TS1 سایز L: ۳ ← ۲ (۱۵ دقیقه رزرو تا پرداخت)');
+    await bot('✅ سفارش شما ثبت نهایی شد.\nشماره‌ی سفارش: ۱۰۰۱\nمبلغ قابل پرداخت: '+fmt(510000)+'\n\n⏳ موجودی تا ۱۵ دقیقه برای شما نگه داشته شد. برای قطعی‌شدن، پرداخت کنید:',1200);
+    await payChoice();
+
+    cap('<b>۱۳.</b> پرداخت آنلاین: لینک بانک ← پرداخت ← <b>تأیید خودکار</b>');
+    await sleep(1200);tap($('pb1'));await sleep(600);
+    await typeMe('پرداخت آنلاین');
+    await bot('لینک پرداخت امن شما (درگاه بانکی) 👇',800);
+    await linkBubble();
+    await sleep(1000);
+    tap($('lk'));await sleep(500);
+    await gateOpen();await sleep(2200);tap($('gpay'));await sleep(600);
+    $('gate').classList.remove('on');
+    feed('پرداخت تأیید شد (خودکار از درگاه)','ok','سفارش ۱۰۰۱ · کد پیگیری بانک ۷۴۷۰۰۷');
+    await bot('✅ پرداخت با موفقیت انجام شد.\nکد پیگیری بانک: ۷۴۷۰۰۷\nسفارش ۱۰۰۱ در حال آماده‌سازی است. 🎉',1200);
     await sleep(2500);
-    cap('<b>پایان.</b> این‌ها بدون دخالت آدم انجام شد');
+    cap('<b>پایان.</b> این‌ها بدون دخالت آدم انجام شد (کارت‌به‌کارت هم هست، ولی کالا فقط بعد از <b>تأیید ادمین</b> می‌رود تا رسید جعلی کار نکند)');
     $('end').classList.add('on');
   }catch(e){if(!(e instanceof Abort))throw e}
 }
@@ -311,7 +365,7 @@ $('rs').onclick=start;
 $('sp').onclick=()=>{speed=speed==1?1.5:speed==1.5?2:speed==2?4:1;$('sp').textContent='سرعت '+nf(speed)+'×'};
 $('replay').onclick=start;
 // مدت تقریبی فیلم برای نوار پیشرفت (میلی‌ثانیه، با سرعت ۱)
-total=62000;
+total=95000;
 window.addEventListener('load',()=>setTimeout(start,400));
 </script>
 </body>

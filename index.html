@@ -116,6 +116,25 @@ body{background:#eef0f4}
 .tg{position:relative;background:none;border:0;padding:0;display:none;color:#000;cursor:pointer}
 .tg .dot{position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#3b6cff;border:2px solid #fff}
 .closeb{display:none;margin-bottom:10px}
+.phone{position:relative}
+.cart .cinfo{border-top:1px dashed #c9c9c9;margin-top:6px;padding-top:6px;line-height:1.8;word-break:break-word}
+.cart .h2{font-size:12.5px;color:#8a6d00;background:#fff6e2;border-radius:10px;padding:6px 9px;margin-top:7px;line-height:1.7}
+.pbtn{display:block;width:100%;margin-top:7px;border:0;border-radius:12px;padding:10px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;background:#fff;color:#000}
+.pbtn.pri{background:#7b3ff2;color:#fff}
+.pbtn:disabled{opacity:.45;cursor:default}
+.lnk{color:#0a66ff;text-decoration:underline;direction:ltr;cursor:pointer;display:inline-block}
+.gate{position:absolute;inset:0;z-index:30;background:#eef2f7;display:none;flex-direction:column;direction:rtl;font-family:Tahoma,"Segoe UI",sans-serif;color:#222;overflow:auto}
+.gate.on{display:flex}
+.gate .gh{background:#0b6b3a;color:#fff;padding:16px;font-size:15px;font-weight:bold;text-align:center}
+.gate .gb{background:#fff;margin:14px;border-radius:14px;padding:16px;font-size:14px;line-height:2;box-shadow:0 1px 6px rgba(0,0,0,.1)}
+.gate .amt{font-size:22px;font-weight:bold;color:#0b6b3a;text-align:center;margin:4px 0 10px}
+.gate .fld{border:1px solid #d5d5d5;border-radius:10px;padding:9px 12px;margin:6px 0;background:#fafafa;direction:ltr;text-align:left;color:#555}
+.gate .demo{font-size:12px;color:#a33;text-align:center;margin-top:6px}
+.tag.g{background:#dff6e6;color:#127a3a}
+.tag.r{background:#e8eefc;color:#2b4fb8}
+.tag.x{background:#eee;color:#777}
+.abtn{border:1px solid #ccc;background:#fff;border-radius:10px;padding:4px 10px;font-family:inherit;font-size:12px;cursor:pointer;margin:6px 4px 0 0}
+.abtn.ok{background:#e5f8ec;border-color:#9fdcb4}.abtn.no{background:#fdeaea;border-color:#f0b4b4}
 @media (max-width:860px){
   body{background:#fff}
   .phone{max-width:none;box-shadow:none}
@@ -150,6 +169,7 @@ body{background:#eef0f4}
       </span>
       <button id="send" style="display:none">Send</button>
     </div></div>
+    <div class="gate" id="gate"></div>
   </div>
 
   <div class="side">
@@ -189,7 +209,15 @@ const BASE=[
  {c:'JK9',n:'کاپشن',p:2300000,e:'🧥',k:['کاپشن','بارونی','پافر'],s:{M:2,L:1,XL:2}},
  {c:'SK10',n:'دامن',p:680000,e:'🩳',k:['دامن'],s:{S:4,M:4}},
 ];
-let P,cart,last,step,cust,orderNo,orders,escs;
+// رنگ‌های موجود هر محصول (۱ = موجود، ۰ = تمام) و مدل‌های مشابه برای پیشنهاد
+const COL={TS1:{'سفید':1,'مشکی':0,'طوسی':1},HD2:{'مشکی':1,'سرمه‌ای':1,'طوسی':0},JN3:{'آبی':1,'مشکی':1},SH4:{'سفید':1,'مشکی':0},DR6:{'مشکی':1,'قرمز':0,'سبز':1}};
+const ALT={TS1:['HD2'],HD2:['TS1','JK9'],JN3:['SK10'],SH4:['CP8'],BG5:['SC7'],DR6:['SK10','SC7'],SC7:['CP8','BG5'],CP8:['SC7'],JK9:['HD2'],SK10:['DR6']};
+function simText(q){
+  const a=(ALT[q.c]||[]).map(c=>P.find(x=>x.c==c)).filter(x=>x&&Object.values(x.s).some(v=>v>0));
+  return a.length?'\n\nمدل‌های مشابه که موجودند:\n'+a.map(x=>`• ${x.n} (کد ${x.c}) · ${fmt(x.p)}`).join('\n'):'';
+}
+function simQuick(q){return (ALT[q.c]||[]).filter(c=>{const x=P.find(y=>y.c==c);return x&&Object.values(x.s).some(v=>v>0)})}
+let P,cart,last,step,cust,orderNo,orders,escs,cur;
 const FREE_SHIP=1000000,SHIP=60000;
 const $=id=>document.getElementById(id);
 const nf=n=>Number(n).toLocaleString('fa-IR');
@@ -198,7 +226,7 @@ const fa=s=>s.replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/
 const now=()=>new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
 
 function init(){
-  P=JSON.parse(JSON.stringify(BASE));cart=[];last=null;step=null;cust={};orderNo=1000;orders=[];escs=[];
+  P=JSON.parse(JSON.stringify(BASE));cart=[];last=null;step=null;cust={};orderNo=1000;orders=[];escs=[];cur=null;$('gate').classList.remove('on');
   resetChat();$('quick').innerHTML='';
   renderStock();renderOrders();renderEscs();renderStory();
   const m=location.hash.match(/^#(?:p=)?([A-Za-z]{2}[0-9]{1,2})$/);
@@ -247,14 +275,20 @@ function renderStock(fc){
 }
 function renderOrders(){
   $('ob').style.display=orders.length?'inline':'none';$('ob').textContent=nf(orders.length);
-  $('orders').innerHTML=orders.length?orders.slice().reverse().map(o=>`<div class="ord flash"><b>سفارش ${noF(o.no)}</b> <span class="tag">${o.src}</span> <span class="tag w">در انتظار پرداخت</span><br>${o.name} · ${o.phone}<br>${o.items.join('، ')}<br>مبلغ: <b>${fmt(o.total)}</b> · ${o.time}</div>`).join(''):'<div class="empty">هنوز سفارشی ثبت نشده</div>';
+  const ST={wait:['w','منتظر پرداخت · رزرو ۱۵ دقیقه'],receipt:['r','رسید دریافت شد · منتظر تأیید ادمین'],paid:['g','پرداخت‌شده ✅'],expired:['x','رزرو منقضی شد']};
+  $('orders').innerHTML=orders.length?orders.slice().reverse().map(o=>{
+    const s=ST[o.status];let act='';
+    if(o.status=='wait')act=`<button class="abtn" onclick="expireOrder(${o.no})">⏱ شبیه‌سازی گذشتن ۱۵ دقیقه</button>`;
+    if(o.status=='receipt')act=`<button class="abtn ok" onclick="adminOk(${o.no})">✔ رسید با بانک خواند · تأیید</button><button class="abtn no" onclick="adminRej(${o.no})">✖ رد (جعلی/نخواند)</button>`;
+    return `<div class="ord flash"><b>سفارش ${noF(o.no)}</b> <span class="tag">${o.src}</span> <span class="tag ${s[0]}">${s[1]}</span>${o.via?` <span class="tag">${o.via=='online'?'درگاه · تأیید خودکار':'کارت‌به‌کارت · تأیید ادمین'}</span>`:''}<br>${esc(o.name)} · ${esc(o.phone)}<br>📍 ${esc(o.addr)}<br>${o.items.join('، ')}<br>مبلغ: <b>${fmt(o.total)}</b> · ${o.time}${act?'<br>'+act:''}</div>`}).join(''):'<div class="empty">هنوز سفارشی ثبت نشده</div>';
 }
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function renderEscs(){
   $('ab').style.display=escs.length?'inline':'none';$('ab').textContent=nf(escs.length);
   $('escs').innerHTML=escs.length?escs.slice().reverse().map(e=>`<div class="esc flash"><span class="tag w">نیاز به ادمین</span> ${e.time}<br>«${e.text}»<br><small style="color:#888">${e.why}</small></div>`).join(''):'<div class="empty">پیامی ارجاع نشده</div>';
 }
 function escalate(text,why){escs.push({text,why,time:now()});renderEscs()}
-function cp(c){const u=location.href.split('#')[0]+'#'+c;navigator.clipboard&&navigator.clipboard.writeText(u).catch(()=>{});prompt('لینک استوری این محصول (کپی شد):',u)}
+function cp(c){const u=location.href.split('#')[0]+'#p='+c;navigator.clipboard&&navigator.clipboard.writeText(u).catch(()=>{});prompt('لینک استوری این محصول (کپی شد):',u)}
 
 function renderStory(){
   const sel=$('sp');if(!sel.options.length)P.forEach(p=>sel.add(new Option(p.c+' · '+p.n,p.c)));
@@ -283,7 +317,7 @@ function showCart(){
 }
 function addCart(p,s,q){
   q=q||1;
-  if(p.s[s]<=0){bot('متأسفانه سایز '+s+' این محصول تمام شده.');return}
+  if(p.s[s]<=0){const ok=Object.entries(p.s).filter(([k,v])=>v>0).map(([k])=>k).join('، ');bot('متأسفانه سایز '+s+' این محصول تمام شده.'+(ok?'\nسایزهای موجود: '+ok:'')+simText(p)).then(()=>setQuick(simQuick(p)));return}
   const inCart=cart.filter(i=>i.p==p&&i.s==s).reduce((a,i)=>a+i.q,0);
   if(inCart+q>p.s[s]){bot('از سایز '+s+' این محصول فقط '+nf(p.s[s])+' عدد داریم'+(inCart?' و '+nf(inCart)+' عدد در سفارش شماست.':'.'));return}
   const ex=cart.find(i=>i.p==p&&i.s==s);ex?ex.q+=q:cart.push({p,s,q});
@@ -310,6 +344,14 @@ async function handle(raw){
   if(step)return flow(raw.trim());
   if(/^(سلام|درود|hi|hello)/.test(t)&&t.length<12){await bot('سلام! 🌸 به فروشگاه تست خوش آمدید.\nکد محصول را بفرستید یا بپرسید، مثلاً «تیشرت سایز L دارید؟»');return}
   if(/اپراتور|ادمین|پشتیبان|آدم|انسان|صحبت با/.test(t)){escalate(raw,'مشتری خودش ادمین خواست');await bot('حتماً. پیام شما برای ادمین فروشگاه فرستاده شد و به‌زودی جواب می‌دهد. 🙏');return}
+  if(cur&&cur.status!='paid'&&cur.status!='expired'){
+    if(/لغو/.test(t)){releaseOrder(cur);cur.status='expired';renderOrders();cur=null;await bot('سفارش لغو شد و موجودی آزاد شد.');return}
+    if(/آنلاین|درگاه|لینک|پرداخت/.test(t)&&!/کارت/.test(t)){return payOnline()}
+    if(/کارت|رسید|واریز/.test(t)){return payCard()}
+  }
+  if(/مرجوع|عودت|برگشت|تعویض/.test(t)){
+    step='ret';
+    await bot('بله، مرجوعی داریم ✅\n• تا ۷ روز بعد از دریافت\n• کالا سالم، تمیز و در بسته‌بندی اصلی\n• با شماره‌ی سفارش\n• کالای معیوب یا اشتباه: هزینه‌ی ارسال مرجوعی با ما\n\nبرای شروع، شماره‌ی سفارش و دلیل مرجوعی را بفرستید تا ادمین پیگیری کند.');return}
   if(/سفارش من|سبد|فاکتور/.test(t)){if(!cart.length){await bot('سفارش شما خالی است.');return}showCart();setQuick(['ثبت نهایی سفارش','محصول دیگر']);return}
   if(/ثبت نهایی|تسویه|پرداخت|نهایی/.test(t)){
     if(!cart.length){await bot('سفارش شما خالی است. اول یک محصول انتخاب کنید.');return}
@@ -323,7 +365,14 @@ async function handle(raw){
     const q=p||(/قیمت|چند|چقدر|میشه|می شه/.test(t)?last:null);
     if(q){last=q;await bot('«'+q.n+'»: '+fmt(q.p)+(q.p>=FREE_SHIP?' (ارسال رایگان)':' + ارسال '+fmt(SHIP)+' = '+fmt(q.p+SHIP)))}
     return}
-  if(/رنگ/.test(t)){escalate(raw,'درباره‌ی رنگ در انبار اطلاعاتی نیست');await bot('اطلاعات رنگ را مطمئن نیستم و حدس نمی‌زنم. پیام شما برای ادمین فرستاده شد تا جواب دقیق بدهد. 🙏');return}
+  if(/رنگ|مشکی|سفید|طوسی|سرمه|قرمز|آبی|سبز/.test(t)){
+    const q=findProduct(t)||last,cl=q&&COL[q.c];
+    if(!cl){escalate(raw,'درباره‌ی رنگ در انبار اطلاعاتی نیست');await bot('اطلاعات رنگ را مطمئن نیستم و حدس نمی‌زنم. پیام شما برای ادمین فرستاده شد تا جواب دقیق بدهد. 🙏');return}
+    last=q;const asked=Object.keys(cl).find(k=>t.includes(fa(k))),okc=Object.keys(cl).filter(k=>cl[k]);
+    if(asked&&cl[asked])await bot('بله، «'+q.n+'» رنگ '+asked+' موجود است ✅\nرنگ‌های موجود: '+okc.join('، '));
+    else if(asked){await bot('رنگ '+asked+' «'+q.n+'» الان تمام شده 😔\nولی این رنگ‌ها موجود است: '+okc.join('، ')+' ✅'+simText(q));setQuick(simQuick(q))}
+    else await bot('رنگ‌های موجود «'+q.n+'»: '+okc.join('، '));
+    card(q);return}
   if(p){
     last=p;const s=sizeIn(t,p),wants=/سفارش|میخوام|می خوام|میخرم|می خرم|بخرم|بردار|بده/.test(t);
     if(/قیمت|چند|چقدر|تومن|تومان/.test(t)&&!s){await bot('«'+p.n+'»: '+fmt(p.p));card(p);return}
@@ -331,7 +380,7 @@ async function handle(raw){
       const n=p.s[s];
       if(n>3){await bot('بله، «'+p.n+'» سایز '+s+' موجود است ✅\nقیمت: '+fmt(p.p))}
       else if(n>0){await bot('بله، ولی از سایز '+s+' فقط '+nf(n)+' عدد مانده ⚠️\nقیمت: '+fmt(p.p))}
-      else{const ok=Object.entries(p.s).filter(([k,v])=>v>0).map(([k])=>k).join('، ');await bot('سایز '+s+' این محصول تمام شده. 😔\nسایزهای موجود: '+(ok||'—'))}
+      else{const ok=Object.entries(p.s).filter(([k,v])=>v>0).map(([k])=>k).join('، ');await bot('سایز '+s+' این محصول تمام شده. 😔\nسایزهای موجود: '+(ok||'—')+simText(p));setQuick(simQuick(p))}
       if(wants&&n>0)addCart(p,s,qtyIn(t));else{card(p);if(n>0)setQuick(['ثبت نهایی سفارش','لیست محصولات'])}
       return}
     if(wants){await bot('عالیه! سایز را انتخاب کنید:');card(p);return}
@@ -339,7 +388,7 @@ async function handle(raw){
   if(/(ساعت|عینک|جوراب|مانتو|ژاکت|بلوز|گوشی|لپ تاپ)/.test(t)){
     await bot('این محصول در لیست فروشگاه ما نیست. 🙏\nمحصولات موجود:\n'+P.map(p=>p.n).join('، '));setQuick(['لیست محصولات','صحبت با ادمین']);return}
   if(/سفارش|میخوام|می خوام|بخرم/.test(t)&&last){await bot('سایز را انتخاب کنید:');card(last);return}
-  if(/تخفیف|ارزون|حراج|مرجوع|تعویض|گارانتی|ضمانت|اصل|کیفیت|جنس/.test(t)){
+  if(/تخفیف|ارزون|حراج|گارانتی|ضمانت|اصل|کیفیت|جنس/.test(t)){
     escalate(raw,'درباره‌ی سیاست یا اطلاعاتی که در انبار نیست');
     await bot('این مورد را مطمئن نیستم و حدس نمی‌زنم. پیام شما برای ادمین فروشگاه فرستاده شد تا جواب دقیق بدهد. 🙏');return}
   await bot('من فقط درباره‌ی محصولات این فروشگاه می‌توانم کمک کنم. 🙂\nکد محصول را بفرستید یا بنویسید «لیست محصولات».');setQuick(['لیست محصولات','صحبت با ادمین']);
@@ -351,16 +400,97 @@ async function flow(v){
     const ph=fa(v).replace(/\s/g,'');
     if(!/^09\d{9}$/.test(ph)){await bot('شماره درست نیست. مثل 09123456789 بفرستید:');return}
     cust.phone=ph;step='addr';await bot('آدرس کامل:');return}
-  if(step=='addr'){
-    cust.addr=v;step=null;
-    if(cart.some(i=>i.p.s[i.s]<i.q)){await bot('متأسفانه در همین لحظه موجودی یکی از اقلام تمام شد. سفارش را بازبینی کنید.');cart=[];renderStock();return}
-    const sub=cartTotal(),ship=sub>=FREE_SHIP?0:SHIP,tot=sub+ship,no=++orderNo;
-    const lines=cart.map(i=>`${i.p.n} (${i.s}) × ${nf(i.q)}`);
-    cart.forEach(i=>{i.p.s[i.s]-=i.q});
-    orders.push({no,name:cust.name,phone:cust.phone,items:lines,total:tot,src:'اینستاگرام',time:now()});
-    const lastCode=cart[cart.length-1].p.c;cart=[];renderStock(lastCode);renderOrders();
-    await bot('✅ سفارش شما ثبت شد!\nشماره‌ی سفارش: '+noF(no)+'\n'+lines.map(x=>'• '+x).join('\n')+'\nجمع کالاها: '+fmt(sub)+'\nارسال: '+(ship?fmt(ship):'رایگان')+'\nمبلغ قابل پرداخت: '+fmt(tot)+'\n\nپرداخت: کارت‌به‌کارت و ارسال رسید همین‌جا.');
-    setQuick(['لیست محصولات']);}
+  if(step=='addr'){cust.addr=v;return showInvoice()}
+  if(step=='e_name'){cust.name=v;return showInvoice()}
+  if(step=='e_addr'){cust.addr=v;return showInvoice()}
+  if(step=='e_phone'){
+    const ph=fa(v).replace(/\s/g,'');
+    if(!/^09\d{9}$/.test(ph)){await bot('شماره درست نیست. مثل 09123456789 بفرستید:');return}
+    cust.phone=ph;return showInvoice()}
+  if(step=='ret'){
+    step=null;escalate(v,'درخواست مرجوعی (شماره‌ی سفارش و دلیل)');
+    await bot('درخواست مرجوعی شما ثبت شد و برای ادمین رفت. ظرف ۲۴ ساعت با شما تماس می‌گیرند. 🙏');setQuick(['لیست محصولات']);return}
+  if(step=='confirm'){
+    const t=fa(v);
+    if(/ثبت نهایی|تایید|تأیید|درسته|اوکی/.test(t))return finalize();
+    if(/لغو/.test(t)){step=null;cart=[];await bot('سفارش لغو شد.');setQuick(['لیست محصولات']);return}
+    if(/موبایل|شماره|تلفن/.test(t)){step='e_phone';await bot('شماره‌ی موبایل جدید:');return}
+    if(/آدرس/.test(t)){step='e_addr';await bot('آدرس کامل جدید:');return}
+    if(/نام|اسم/.test(t)){step='e_name';await bot('نام و نام خانوادگی جدید:');return}
+    await bot('برای ادامه «ثبت نهایی» را بزنید، یا یکی از گزینه‌های ویرایش را انتخاب کنید.');return}
+}
+function invoice(){
+  const sub=cartTotal(),ship=sub>=FREE_SHIP?0:SHIP;
+  const d=document.createElement('div');d.className='cart';
+  d.innerHTML='<b>🧾 فاکتور شما (پیش‌نویس)</b><br>'+cart.map(i=>`• ${i.p.n} (${i.s}) × ${nf(i.q)} — ${fmt(i.p.p*i.q)}`).join('<br>')+`<div class="tot">کالاها: ${fmt(sub)}<br>ارسال: ${ship?fmt(ship):'رایگان'}<br>جمع: ${fmt(sub+ship)}</div><div class="cinfo">👤 ${esc(cust.name)}<br>📱 ${esc(cust.phone)}<br>📍 ${esc(cust.addr)}</div><div class="h2">اطلاعات را بررسی کنید. تا «ثبت نهایی» نزنید سفارش قطعی نمی‌شود.</div>`;
+  pushRow(d,'bot');
+}
+async function showInvoice(){
+  step='confirm';
+  await bot('این فاکتور کامل سفارش شماست. لطفاً نام، موبایل و آدرس را با دقت چک کنید:');
+  invoice();setQuick(['✅ ثبت نهایی','✏️ ویرایش نام','✏️ ویرایش موبایل','✏️ ویرایش آدرس','لغو سفارش']);
+}
+function releaseOrder(o){o.cartItems.forEach(i=>{i.p.s[i.s]+=i.q});renderStock()}
+async function finalize(){
+  step=null;
+  if(cart.some(i=>i.p.s[i.s]<i.q)){await bot('متأسفانه در همین لحظه موجودی یکی از اقلام تمام شد. سفارش را بازبینی کنید.');cart=[];renderStock();return}
+  const sub=cartTotal(),ship=sub>=FREE_SHIP?0:SHIP,tot=sub+ship,no=++orderNo;
+  const lines=cart.map(i=>`${i.p.n} (${i.s}) × ${nf(i.q)}`);
+  cart.forEach(i=>{i.p.s[i.s]-=i.q});
+  const o={no,name:cust.name,phone:cust.phone,addr:cust.addr,items:lines,total:tot,src:'اینستاگرام',time:now(),status:'wait',cartItems:cart.map(i=>({p:i.p,s:i.s,q:i.q}))};
+  orders.push(o);cur=o;const lastCode=cart[cart.length-1].p.c;cart=[];renderStock(lastCode);renderOrders();
+  await bot('✅ سفارش شما ثبت نهایی شد.\nشماره‌ی سفارش: '+noF(no)+'\nمبلغ قابل پرداخت: '+fmt(tot)+'\n\n⏳ موجودی تا ۱۵ دقیقه برای شما نگه داشته شد. برای قطعی‌شدن، پرداخت کنید:');
+  const d=document.createElement('div');d.className='cart';
+  d.innerHTML='<b>روش پرداخت</b><button class="pbtn pri" id="pb1">💳 پرداخت آنلاین (درگاه بانکی)</button><button class="pbtn" id="pb2">🏦 کارت‌به‌کارت (ارسال رسید)</button>';
+  pushRow(d,'bot');
+  $('pb1').onclick=()=>{say('پرداخت آنلاین');payOnline()};$('pb2').onclick=()=>{say('کارت‌به‌کارت');payCard()};
+  setQuick(['💳 پرداخت آنلاین','🏦 کارت‌به‌کارت','لغو سفارش']);
+}
+async function payOnline(){
+  const o=cur;if(!o)return;
+  await bot('لینک پرداخت امن شما (درگاه بانکی) 👇');
+  const d=document.createElement('div');d.className='m bot';d.innerHTML='<span class="lnk">pay.shop.test/'+noF(o.no)+'</span>';
+  d.querySelector('.lnk').onclick=()=>openGate(o);pushRow(d,'bot');
+}
+function openGate(o){
+  if(o.status=='paid'||o.status=='expired')return;
+  const g=$('gate');
+  g.innerHTML=`<div class="gh">درگاه پرداخت امن</div><div class="gb"><div style="text-align:center">فروشگاه تست · سفارش ${noF(o.no)}</div><div class="amt">${fmt(o.total)}</div><div class="fld">6037 •••• •••• 1234</div><div class="fld">CVV2 ••• · 12/05</div><button class="pbtn pri" id="gpay">پرداخت</button><button class="pbtn" id="gcan">انصراف</button><div class="demo">صفحه‌ی نمایشی است؛ پول واقعی کم نمی‌شود.</div></div>`;
+  g.classList.add('on');
+  $('gpay').onclick=()=>{g.classList.remove('on');onlinePaid(o)};
+  $('gcan').onclick=async()=>{g.classList.remove('on');await bot('پرداخت انجام نشد. هنوز تا ۱۵ دقیقه موجودی برای شما رزرو است؛ هر وقت خواستید دوباره لینک را بزنید.')};
+}
+async function onlinePaid(o){
+  o.status='paid';o.via='online';if(cur===o)cur=null;renderOrders();
+  await bot('✅ پرداخت با موفقیت انجام شد.\nکد پیگیری بانک: '+noF(740000+o.no*7)+'\nسفارش '+noF(o.no)+' در حال آماده‌سازی است. 🎉');
+  setQuick(['لیست محصولات','مرجوعی دارید؟']);
+}
+async function payCard(){
+  const o=cur;if(!o)return;
+  await bot('مبلغ '+fmt(o.total)+' را به این کارت واریز کنید:\n6037-9911-0000-1234\nبه نام: فروشگاه تست\n\nبعد عکس رسید را همین‌جا بفرستید.\n⚠️ ارسال کالا فقط بعد از تأیید ادمین است.');
+  const d=document.createElement('div');d.className='cart';
+  d.innerHTML='<button class="pbtn pri" id="rc">📎 ارسال رسید (نمایشی)</button>';pushRow(d,'bot');
+  $('rc').onclick=async()=>{
+    $('rc').disabled=true;const m=document.createElement('div');m.className='m me';m.textContent='🧾 [عکس رسید واریز]';pushRow(m,'me');
+    o.status='receipt';o.via='card';renderOrders();
+    await bot('رسید دریافت شد ✅\nادمین فروشگاه آن را با واریزی واقعی بانک تطبیق می‌دهد (چند دقیقه). بعد از تأیید همین‌جا خبر می‌دهیم.');
+  };
+}
+async function adminOk(no){
+  const o=orders.find(x=>x.no==no);if(!o||o.status!='receipt')return;
+  o.status='paid';if(cur===o)cur=null;renderOrders();
+  await bot('✅ پرداخت شما توسط فروشگاه تأیید شد.\nسفارش '+noF(o.no)+' در حال آماده‌سازی است. 🎉');
+}
+async function adminRej(no){
+  const o=orders.find(x=>x.no==no);if(!o||o.status!='receipt')return;
+  o.status='wait';o.via=null;renderOrders();
+  await bot('⚠️ رسید شما با واریزی ما در بانک نخواند و تأیید نشد.\nلطفاً رسید درست را بفرستید یا آنلاین پرداخت کنید.');
+  setQuick(['💳 پرداخت آنلاین','🏦 کارت‌به‌کارت']);
+}
+async function expireOrder(no){
+  const o=orders.find(x=>x.no==no);if(!o||o.status!='wait')return;
+  releaseOrder(o);o.status='expired';if(cur===o)cur=null;renderOrders();
+  await bot('⏱ مهلت ۱۵ دقیقه‌ای پرداخت تمام شد و رزرو لغو شد. اگر هنوز می‌خواهید، دوباره سفارش دهید.');setQuick(['لیست محصولات']);
 }
 
 function syncSend(){const has=$('t').value.trim().length>0;$('send').style.display=has?'block':'none';$('icons').style.display=has?'none':'flex'}
