@@ -275,12 +275,12 @@ function renderStock(fc){
 }
 function renderOrders(){
   $('ob').style.display=orders.length?'inline':'none';$('ob').textContent=nf(orders.length);
-  const ST={wait:['w','منتظر پرداخت · رزرو ۱۵ دقیقه'],receipt:['r','رسید دریافت شد · منتظر تأیید ادمین'],paid:['g','پرداخت‌شده ✅'],expired:['x','رزرو منقضی شد']};
+  const ST={wait:['w','منتظر پرداخت · رزرو ۱۵ دقیقه'],cardwait:['r','منتظر واریز کارت‌به‌کارت · تأیید خودکار'],paid:['g','پرداخت‌شده ✅'],expired:['x','رزرو منقضی شد']};
   $('orders').innerHTML=orders.length?orders.slice().reverse().map(o=>{
     const s=ST[o.status];let act='';
     if(o.status=='wait')act=`<button class="abtn" onclick="expireOrder(${o.no})">⏱ شبیه‌سازی گذشتن ۱۵ دقیقه</button>`;
-    if(o.status=='receipt')act=`<button class="abtn ok" onclick="adminOk(${o.no})">✔ رسید با بانک خواند · تأیید</button><button class="abtn no" onclick="adminRej(${o.no})">✖ رد (جعلی/نخواند)</button>`;
-    return `<div class="ord flash"><b>سفارش ${noF(o.no)}</b> <span class="tag">${o.src}</span> <span class="tag ${s[0]}">${s[1]}</span>${o.via?` <span class="tag">${o.via=='online'?'درگاه · تأیید خودکار':'کارت‌به‌کارت · تأیید ادمین'}</span>`:''}<br>${esc(o.name)} · ${esc(o.phone)}<br>📍 ${esc(o.addr)}<br>${o.items.join('، ')}<br>مبلغ: <b>${fmt(o.total)}</b> · ${o.time}${act?'<br>'+act:''}</div>`}).join(''):'<div class="empty">هنوز سفارشی ثبت نشده</div>';
+    if(o.status=='cardwait')act=`<div style="font-size:12px;color:#777;margin-top:4px">مبلغ یکتای این سفارش: <b>${fmt(o.uniq)}</b><br>سیستم پیامک بانک فروشگاه را خودکار می‌خواند. (شبیه‌سازی:)</div><button class="abtn ok" onclick="bankSms(${o.no},true)">📩 پیامک بانک: واریز ${nf(o.uniq)}</button><button class="abtn no" onclick="bankSms(${o.no},false)">📩 واریز با مبلغ اشتباه</button><button class="abtn" onclick="expireOrder(${o.no})">⏱ گذشتن ۱۵ دقیقه</button>`;
+    return `<div class="ord flash"><b>سفارش ${noF(o.no)}</b> <span class="tag">${o.src}</span> <span class="tag ${s[0]}">${s[1]}</span>${o.via?` <span class="tag">${o.via=='online'?'درگاه · تأیید خودکار':'کارت‌به‌کارت · تأیید خودکار با پیامک بانک'}</span>`:''}<br>${esc(o.name)} · ${esc(o.phone)}<br>📍 ${esc(o.addr)}<br>${o.items.join('، ')}<br>مبلغ: <b>${fmt(o.total)}</b> · ${o.time}${act?'<br>'+act:''}</div>`}).join(''):'<div class="empty">هنوز سفارشی ثبت نشده</div>';
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function renderEscs(){
@@ -467,28 +467,21 @@ async function onlinePaid(o){
 }
 async function payCard(){
   const o=cur;if(!o)return;
-  await bot('مبلغ '+fmt(o.total)+' را به این کارت واریز کنید:\n6037-9911-0000-1234\nبه نام: فروشگاه تست\n\nبعد عکس رسید را همین‌جا بفرستید.\n⚠️ ارسال کالا فقط بعد از تأیید ادمین است.');
-  const d=document.createElement('div');d.className='cart';
-  d.innerHTML='<button class="pbtn pri" id="rc">📎 ارسال رسید (نمایشی)</button>';pushRow(d,'bot');
-  $('rc').onclick=async()=>{
-    $('rc').disabled=true;const m=document.createElement('div');m.className='m me';m.textContent='🧾 [عکس رسید واریز]';pushRow(m,'me');
-    o.status='receipt';o.via='card';renderOrders();
-    await bot('رسید دریافت شد ✅\nادمین فروشگاه آن را با واریزی واقعی بانک تطبیق می‌دهد (چند دقیقه). بعد از تأیید همین‌جا خبر می‌دهیم.');
-  };
+  o.uniq=o.total+(o.no%90)+7;o.status='cardwait';o.via='card';renderOrders();
+  await bot('دقیقاً این مبلغ را واریز کنید (مبلغ مخصوص همین سفارش است):\n'+fmt(o.uniq)+'\n\nبه کارت:\n6037-9911-0000-1234\nبه نام: فروشگاه تست\n\n✅ نیازی به ارسال عکس فیش نیست. به‌محض نشستن واریز در حساب، سفارش خودکار تأیید می‌شود و همین‌جا خبر می‌دهیم.\n⚠️ با مبلغ دیگر، تأیید خودکار انجام نمی‌شود.');
 }
-async function adminOk(no){
-  const o=orders.find(x=>x.no==no);if(!o||o.status!='receipt')return;
-  o.status='paid';if(cur===o)cur=null;renderOrders();
-  await bot('✅ پرداخت شما توسط فروشگاه تأیید شد.\nسفارش '+noF(o.no)+' در حال آماده‌سازی است. 🎉');
-}
-async function adminRej(no){
-  const o=orders.find(x=>x.no==no);if(!o||o.status!='receipt')return;
-  o.status='wait';o.via=null;renderOrders();
-  await bot('⚠️ رسید شما با واریزی ما در بانک نخواند و تأیید نشد.\nلطفاً رسید درست را بفرستید یا آنلاین پرداخت کنید.');
-  setQuick(['💳 پرداخت آنلاین','🏦 کارت‌به‌کارت']);
+async function bankSms(no,ok){
+  const o=orders.find(x=>x.no==no);if(!o||o.status!='cardwait')return;
+  if(ok){
+    o.status='paid';if(cur===o)cur=null;renderOrders();
+    await bot('✅ واریز شما در حساب فروشگاه دیده شد و خودکار تأیید شد.\nسفارش '+noF(o.no)+' در حال آماده‌سازی است. 🎉');
+  }else{
+    await bot('⚠️ واریزی با مبلغ دقیق '+fmt(o.uniq)+' پیدا نشد.\nلطفاً همان مبلغ را واریز کنید یا آنلاین پرداخت کنید.');
+    setQuick(['💳 پرداخت آنلاین']);
+  }
 }
 async function expireOrder(no){
-  const o=orders.find(x=>x.no==no);if(!o||o.status!='wait')return;
+  const o=orders.find(x=>x.no==no);if(!o||(o.status!='wait'&&o.status!='cardwait'))return;
   releaseOrder(o);o.status='expired';if(cur===o)cur=null;renderOrders();
   await bot('⏱ مهلت ۱۵ دقیقه‌ای پرداخت تمام شد و رزرو لغو شد. اگر هنوز می‌خواهید، دوباره سفارش دهید.');setQuick(['لیست محصولات']);
 }
