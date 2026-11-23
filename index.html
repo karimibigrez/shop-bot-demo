@@ -105,22 +105,37 @@ select{font-family:inherit;padding:6px;border:1px solid #ddd;border-radius:8px;w
 .intro .in{font-weight:700;font-size:20px}.intro .iu{color:#8e8e8e;font-size:15px}.intro .is{color:#8e8e8e;font-size:14px}
 .intro .vp{margin-top:12px;background:#efefef;border:0;border-radius:10px;padding:9px 18px;font-weight:600;font-size:15px;font-family:inherit}
 .stamp{text-align:center;color:#8e8e8e;font-size:13px;margin:22px 0 10px}
+/* ===== بدون قاب گوشی: خود چت صفحه است ===== */
+html,body{height:100%}
+body{background:#eef0f4}
+.wrap{display:flex;gap:0;padding:0;justify-content:center;align-items:stretch;flex-wrap:nowrap;height:100vh;height:100dvh}
+.phone{width:100%;max-width:440px;height:100%;max-height:none;border:0;border-radius:0;box-shadow:0 0 0 1px #e3e3e3;flex:none}
+.top{padding:12px 14px 10px;padding-top:max(12px,env(safe-area-inset-top))}
+.inp{padding-bottom:max(14px,env(safe-area-inset-bottom))}
+.side{margin:16px;height:calc(100% - 32px);overflow:auto;flex:none}
+.tg{position:relative;background:none;border:0;padding:0;display:none;color:#000;cursor:pointer}
+.tg .dot{position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#3b6cff;border:2px solid #fff}
+.closeb{display:none;margin-bottom:10px}
+@media (max-width:860px){
+  body{background:#fff}
+  .phone{max-width:none;box-shadow:none}
+  .tg{display:block}
+  .side{display:none;position:fixed;inset:0;z-index:50;margin:0;height:auto;border-radius:0;width:auto;max-width:none}
+  .side.open{display:block}
+  .closeb{display:inline-block}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="phone">
-    <div class="status"><b id="clk">9:41</b><span class="sic">
-      <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
-      <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 4a11 11 0 0115 0M3.5 7a7.5 7.5 0 0110 0M6.2 9.8a3.6 3.6 0 014.6 0"/></svg>
-      <svg width="26" height="12" viewBox="0 0 26 12"><rect x="0.5" y="0.5" width="22" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="17" height="8" rx="2"/><rect x="24" y="4" width="2" height="4" rx="1" opacity=".5"/></svg>
-    </span></div>
     <div class="top">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
       <div class="av">ف</div>
       <div class="tt"><b>فروشگاه تست</b><small>Business chat</small></div>
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="3"/><path d="M16 10l6-3v10l-6-3z"/></svg>
+      <button class="tg" id="bk" aria-label="پشت صحنه"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/></svg><i class="dot"></i></button>
     </div>
     <div id="chat"></div>
     <div class="q" id="quick"></div>
@@ -140,6 +155,7 @@ select{font-family:inherit;padding:6px;border:1px solid #ddd;border-radius:8px;w
   <div class="side">
     <div class="note"><b>این یک دموی نمایشی است.</b><br>
     جواب‌ها اینجا با قاعده‌های ساده ساخته می‌شوند. در نسخه‌ی واقعی، هوش مصنوعی جواب می‌دهد، ولی <b>قیمت و موجودی همیشه از انبار (دوک)</b> خوانده می‌شود، نه از حدس ربات.</div>
+    <button class="chip closeb" id="closeSide">✕ بستن پشت صحنه</button>
     <button class="chip" id="reset" style="margin-bottom:10px">↻ شروع دوباره</button>
     <div class="tabs">
       <button class="tab on" data-p="stockP">انبار زنده</button>
@@ -211,7 +227,7 @@ function intro(){
   $('chat').appendChild(d);
   const t=document.createElement('div');t.className='stamp';t.textContent=hm();$('chat').appendChild(t);
 }
-function resetChat(){$('chat').innerHTML='';$('clk').textContent=hm();intro()}
+function resetChat(){$('chat').innerHTML='';intro()}
 function add(cls,txt){const d=document.createElement('div');d.className='m '+cls;d.dir='auto';d.textContent=txt;pushRow(d,cls==='me'?'me':'bot');return d}
 function bot(txt,delay){
   const ty=document.createElement('div');ty.className='m bot typing';ty.innerHTML='<i></i><i></i><i></i>';
@@ -301,7 +317,7 @@ async function handle(raw){
   if(/پاک کردن/.test(t)){cart=[];await bot('سفارش پاک شد.');setQuick(['لیست محصولات']);return}
   if(/محصول دیگر|لیست|همه محصولات|چی دارید|چه چیزی|کاتالوگ/.test(t)){
     await bot('محصولات ما:\n'+P.map(p=>`${p.c} · ${p.n} · ${fmt(p.p)}`).join('\n')+'\n\nکد یا اسم محصول را بفرستید.');return}
-  const p=findProduct(t);
+  const p=findProduct(t)||((last&&sizeIn(t,last)&&/سایز|دارید|موجود|هست|داره/.test(t))?last:null);
   if(/ارسال|پست|تیپاکس|حمل|شیراز|مشهد|اصفهان|تبریز|شهر/.test(t)){
     await bot('ارسال به همه‌ی شهرها انجام می‌شود (۲ تا ۵ روز کاری).\nهزینه‌ی ارسال '+fmt(SHIP)+' است و برای خرید بالای '+fmt(FREE_SHIP)+' رایگان.');
     const q=p||(/قیمت|چند|چقدر|میشه|می شه/.test(t)?last:null);
@@ -351,7 +367,9 @@ function syncSend(){const has=$('t').value.trim().length>0;$('send').style.displ
 function send(){const v=$('t').value;if(!v.trim())return;$('t').value='';syncSend();say(v);handle(v)}
 $('t').addEventListener('input',syncSend);
 $('send').onclick=send;$('t').addEventListener('keydown',e=>{if(e.key=='Enter')send()});
-$('reset').onclick=init;
+$('reset').onclick=()=>{init();document.querySelector('.side').classList.remove('open')};
+$('bk').onclick=()=>document.querySelector('.side').classList.add('open');
+$('closeSide').onclick=()=>document.querySelector('.side').classList.remove('open');
 $('sp').onchange=renderStory;
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
