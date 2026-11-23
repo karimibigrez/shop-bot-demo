@@ -40,6 +40,7 @@ input:focus{outline:none;border-color:#3b5bdb}
 .cnt span{min-width:44px;text-align:center;font-size:26px;font-weight:bold}
 .x{background:none;border:0;font-size:24px;cursor:pointer;color:#c33;padding:6px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip.sel{background:#3b5bdb;color:#fff}
 .chip{background:#fff;border:2px solid #3b5bdb;color:#3b5bdb;border-radius:14px;padding:8px 16px;font-size:20px;font-family:inherit;cursor:pointer}
 .err{background:#fde8e8;color:#b42318;border-radius:14px;padding:12px;font-weight:bold;margin:10px 0}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#17a34a;color:#fff;padding:14px 24px;border-radius:30px;font-size:20px;font-weight:bold;z-index:9;box-shadow:0 4px 16px rgba(0,0,0,.25)}
@@ -83,7 +84,7 @@ function orders(){const a=load(OKEY);return Array.isArray(a)?a:[]}
 function saveOrders(a){localStorage.setItem(OKEY,JSON.stringify(a))}
 const EMOS=['👕','👖','🧥','👟','👜','🧣','🧢','👗','🩳','🎁','📦','💍'];
 const PRESETS=['S','M','L','XL','XXL','38','39','40','41','42','43','44','فری','تک‌سایز'];
-let scr='home',ed=null,msg='',confirmDel=false,toastT;
+let scr='home',ed=null,msg='',confirmDel=false,toastT,q='',flt='all',shown=20,ordTab='todo',lq='';
 function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
 function go(s){scr=s;msg='';confirmDel=false;render();window.scrollTo(0,0)}
 function stockText(p){
@@ -104,9 +105,13 @@ function render(){
     <div style="text-align:center">${confirmDel?`<div class="card">همه‌ی کالاها و سفارش‌ها پاک شود و نمونه‌ها برگردد؟<button class="btn red" onclick="resetAll()">بله، پاک کن</button><button class="btn" onclick="confirmDel=false;render()">نه</button></div>`:`<button class="tiny" onclick="confirmDel=true;render()">برگرداندن همه‌چیز به حالت نمونه</button>`}</div>`;
   }
   else if(scr=='prods'){
-    a.innerHTML=`<div class="top"><button class="back" onclick="go('home')">← برگشت</button></div><h2>📦 کالاها</h2>
-    <button class="btn green" onclick="newProd()">➕ کالای جدید</button>`+
-    (prods.length?prods.map(p=>`<div class="card"><div class="prow" onclick="editProd('${p.c}')"><div class="thumb" style="${p.img?`background-image:url(${p.img})`:''}">${p.img?'':esc(p.e||'📦')}</div><div><div class="pn">${esc(p.n)}</div><div class="pm">${nf(p.p)} تومان</div><div class="pm">${stockText(p)}</div></div></div></div>`).join(''):'<div class="empty">هنوز کالایی نیست. دکمه‌ی سبز را بزنید.</div>');
+    const nLow=prods.filter(isLow).length;
+    a.innerHTML=`<div class="top"><button class="back" onclick="go('home')">← برگشت</button></div><h2>📦 کالاها <span style="font-weight:normal;font-size:18px;color:#666">(${nf(prods.length)} کالا)</span></h2>
+    <button class="btn green" onclick="newProd()">➕ کالای جدید</button>
+    <input type="text" id="q" value="${esc(q)}" placeholder="🔍 اسم کالا را بنویس تا پیدا شود" oninput="q=this.value;shown=20;renderPList()" style="margin-bottom:10px">
+    <div class="chips" style="margin:0 0 12px"><button class="chip ${flt=='all'?'sel':''}" onclick="flt='all';shown=20;render()">همه</button><button class="chip ${flt=='low'?'sel':''}" onclick="flt='low';shown=20;render()">⚠ کم یا تمام‌شده (${nf(nLow)})</button></div>
+    <div id="plist"></div>`;
+    renderPList();
   }
   else if(scr=='edit'){
     const isNew=!prods.find(p=>p.c==ed.c);
@@ -125,11 +130,15 @@ function render(){
     <div class="hint" style="margin-top:10px">➕ یک سایز اضافه کن:</div>
     <div class="chips">${PRESETS.filter(x=>!(x in ed.s)).map(x=>`<button class="chip" onclick="addSize('${x}')">${x}</button>`).join('')}</div>
     <button class="btn green" style="margin-top:26px" onclick="saveProd()">✅ ذخیره</button>
+    ${isNew?'':`<button class="btn" onclick="cp(new URL('./',location.href).href+'#${esc(ed.c)}')">📋 کپی لینک این کالا</button>`}
     ${isNew?'':(confirmDel?`<div class="card">این کالا برای همیشه پاک شود؟<button class="btn red" onclick="delProd()">بله، پاک کن</button><button class="btn" onclick="confirmDel=false;render()">نه</button></div>`:`<button class="btn red" onclick="confirmDel=true;render()">🗑 پاک کردن این کالا</button>`)}`;
   }
   else if(scr=='orders'){
-    const list=orders().slice().sort((x,y)=>y.no-x.no);
-    a.innerHTML=`<div class="top"><button class="back" onclick="go('home')">← برگشت</button></div><h2>🧾 سفارش‌ها</h2>`+
+    const all=orders().slice().sort((x,y)=>y.no-x.no),nTodo=all.filter(o=>o.status=='paid'&&!o.sent).length;
+    const list=ordTab=='todo'?all.filter(o=>o.status=='paid'&&!o.sent):all;
+    a.innerHTML=`<div class="top"><button class="back" onclick="go('home')">← برگشت</button></div><h2>🧾 سفارش‌ها</h2>
+    <div class="chips" style="margin:0 0 12px"><button class="chip ${ordTab=='todo'?'sel':''}" onclick="ordTab='todo';render()">🟢 باید بفرستم (${nf(nTodo)})</button><button class="chip ${ordTab=='all'?'sel':''}" onclick="ordTab='all';render()">همه (${nf(all.length)})</button></div>`+
+    (ordTab=='todo'&&!list.length?`<div class="empty">${all.length?'همه‌ی سفارش‌ها فرستاده شده ✅':'هنوز سفارشی نیامده.<br>وقتی مشتری خرید کند، اینجا می‌بینید.'}</div>`:'')+
     (list.length?list.map(o=>{
       let tag,btn='';
       if(o.status=='paid'&&!o.sent){tag='<span class="tag t-go">🟢 پول رسیده؛ بفرستید</span>';btn=`<button class="btn green" onclick="sent(${o.no})">📦 فرستادم</button>`}
@@ -139,7 +148,7 @@ function render(){
       return `<div class="card ord"><div><b>سفارش ${noF(o.no)}</b> · ${esc(o.time||'')}</div><div class="l">${tag}</div>
       <div class="l">👤 ${esc(o.name)}</div><div class="l">📱 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a></div><div class="l">📍 ${esc(o.addr)}</div>
       <div class="l">🛍 ${(o.items||[]).map(esc).join('، ')}</div><div class="l"><b>مبلغ: ${nf(o.total)} تومان</b></div>${btn}</div>`}).join('')
-    :'<div class="empty">هنوز سفارشی نیامده.<br>وقتی مشتری خرید کند، اینجا می‌بینید.</div>');
+    :'');
   }
   else if(scr=='links'){
     const base=new URL('./',location.href).href;
@@ -147,9 +156,27 @@ function render(){
     a.innerHTML=`<div class="top"><button class="back" onclick="go('home')">← برگشت</button></div><h2>🔗 لینک فروشگاه</h2>
     <div class="card"><b>لینک اصلی فروشگاه</b><div class="lnk">${esc(base)}</div><button class="btn blue" onclick="cp('${esc(base)}')">📋 کپی لینک</button><div class="hint">این را در بایو اینستاگرام بگذارید.</div></div>
     <div class="card"><b>متن آماده برای پیام خودکار دایرکت</b><div class="lnk" style="direction:rtl;text-align:right">${esc(welcome)}</div><button class="btn blue" onclick="cp(${JSON.stringify(welcome).replace(/"/g,'&quot;')})">📋 کپی متن</button></div>
-    <h2 style="margin-top:20px">لینک هر کالا</h2><div class="hint" style="margin-bottom:8px">برای استوری یا پست، لینک همان کالا را بدهید.</div>
-    ${prods.map(p=>`<div class="card"><div class="pn">${esc(p.n)}</div><div class="lnk">${esc(base)}#${esc(p.c)}</div><button class="btn" style="padding:12px;font-size:19px" onclick="cp('${esc(base)}#${esc(p.c)}')">📋 کپی</button></div>`).join('')}`;
+    <div class="card"><b>لینک یک کالای مشخص</b><div class="hint">برای استوری یا پست. اسم کالا را بنویس:</div>
+    <input type="text" id="lq" value="${esc(lq)}" placeholder="🔍 اسم کالا" oninput="lq=this.value;renderLinkRes()" style="margin-top:8px"><div id="lres"></div></div>`;
+    renderLinkRes();
   }
+}
+const norm=s=>digits(String(s||'')).replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/‌/g,' ').toLowerCase().trim();
+function isLow(p){const v=Object.values(p.s);return !v.length||v.some(x=>x<=2)}
+function find(qq){const t=norm(qq);return t?prods.filter(p=>norm(p.n).includes(t)||norm(p.c).includes(t)):prods}
+function renderPList(){
+  let list=find(q);if(flt=='low')list=list.filter(isLow);
+  const el=$('plist');if(!el)return;
+  if(!list.length){el.innerHTML=`<div class="empty">${prods.length?'چیزی پیدا نشد.':'هنوز کالایی نیست. دکمه‌ی سبز را بزنید.'}</div>`;return}
+  el.innerHTML=list.slice(0,shown).map(p=>{const tot=Object.values(p.s).reduce((a,v)=>a+v,0),low=isLow(p);
+    return `<div class="card" style="padding:10px"><div class="prow" onclick="editProd('${p.c}')"><div class="thumb" style="width:50px;height:50px;font-size:28px;${p.img?`background-image:url(${p.img})`:''}">${p.img?'':esc(p.e||'📦')}</div><div style="min-width:0"><div class="pn" style="font-size:19px">${esc(p.n)}</div><div class="pm">${nf(p.p)} تومان · ${tot?nf(tot)+' عدد':'<span class="low">تمام شد</span>'}${low&&tot?' <span class="low">⚠ کم</span>':''}</div></div></div></div>`}).join('')
+    +(list.length>shown?`<button class="btn" onclick="shown+=20;renderPList()">نمایش بیشتر (${nf(list.length-shown)} کالای دیگر)</button>`:'');
+}
+function renderLinkRes(){
+  const el=$('lres');if(!el)return;const base=new URL('./',location.href).href;
+  if(!norm(lq)){el.innerHTML='';return}
+  const l=find(lq).slice(0,5);
+  el.innerHTML=l.length?l.map(p=>`<div style="margin-top:10px"><div class="pn" style="font-size:19px">${esc(p.n)}</div><button class="btn blue" style="padding:12px;font-size:19px;margin:6px 0 0" onclick="cp('${esc(base)}#${esc(p.c)}')">📋 کپی لینک این کالا</button></div>`).join(''):'<div class="empty" style="padding:12px">چیزی پیدا نشد.</div>';
 }
 function cp(t){
   const done=()=>toast('کپی شد ✅');
