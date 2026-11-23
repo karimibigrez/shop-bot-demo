@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>دموی چت فروشگاه</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Tahoma,"Segoe UI",sans-serif;background:#eef0f4;color:#1c1e21;min-height:100vh}
+.wrap{display:flex;gap:20px;justify-content:center;align-items:flex-start;padding:16px;flex-wrap:wrap}
+.phone{width:390px;max-width:100%;height:780px;max-height:calc(100vh - 32px);background:#fff;border-radius:30px;box-shadow:0 10px 34px rgba(0,0,0,.2);display:flex;flex-direction:column;overflow:hidden;border:8px solid #111}
+.top{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #eee;background:#fff}
+.av{width:38px;height:38px;border-radius:50%;background:linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;flex:none}
+.top b{font-size:15px}.top small{display:block;color:#8e8e8e;font-size:11px}
+.top .rs{margin-right:auto;border:1px solid #ddd;background:#fff;border-radius:12px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;color:#555}
+#chat{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#fafafa}
+.m{max-width:84%;padding:9px 13px;border-radius:18px;font-size:14px;line-height:1.75;white-space:pre-wrap;word-break:break-word}
+.bot{background:#efefef;align-self:flex-start;border-bottom-left-radius:4px}
+.me{background:linear-gradient(135deg,#7b3ff2,#a23cf0);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.typing{background:#efefef;align-self:flex-start;border-radius:18px;padding:12px 16px;display:flex;gap:5px}
+.typing i{width:7px;height:7px;border-radius:50%;background:#999;animation:b 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
+.card{align-self:flex-start;width:262px;background:#fff;border:1px solid #e3e3e3;border-radius:16px;overflow:hidden}
+.card .pic{height:112px;display:flex;align-items:center;justify-content:center;font-size:56px;background:linear-gradient(135deg,#f1eefb,#e6f0ff)}
+.card .b{padding:10px 12px}.card .n{font-weight:bold;font-size:14px}.card .p{color:#555;font-size:13px;margin:2px 0 8px}
+.card .cc{font-size:11px;color:#888;margin-top:7px}
+.cart{align-self:flex-start;width:262px;background:#fff;border:1px dashed #b79af5;border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.9}
+.cart b{font-size:13.5px}.cart .tot{border-top:1px solid #eee;margin-top:5px;padding-top:5px;font-weight:bold}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid #c9c9c9;background:#fff;border-radius:14px;padding:5px 11px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.chip:hover{background:#f3ecff;border-color:#8a4bf0}
+.chip.off{opacity:.4;text-decoration:line-through;cursor:not-allowed}
+.chip.few{border-color:#f0b34a;background:#fff8e8}
+.q{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px 0;background:#fff}
+.q .chip{background:#f7f2ff;border-color:#d9c6ff;color:#5a2fb3}
+.inp{display:flex;gap:8px;padding:10px 12px;background:#fff;border-top:1px solid #eee}
+.inp input{flex:1;border:1px solid #ddd;border-radius:20px;padding:10px 14px;font-size:14px;font-family:inherit;outline:none}
+.inp input:focus{border-color:#8a4bf0}
+.inp button{border:0;background:#7b3ff2;color:#fff;border-radius:20px;padding:0 18px;font-family:inherit;font-size:14px;cursor:pointer}
+.side{width:410px;max-width:100%;background:#fff;border-radius:16px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.note{background:#fff7e0;border:1px solid #f1d98a;border-radius:10px;padding:10px;font-size:12.5px;line-height:1.8;margin-bottom:12px}
+.tabs{display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid #eee}
+.tab{border:0;background:none;padding:8px 10px;font-family:inherit;font-size:13px;cursor:pointer;color:#777;border-bottom:2px solid transparent;position:relative}
+.tab.on{color:#5a2fb3;border-color:#7b3ff2;font-weight:bold}
+.badge{background:#e0245e;color:#fff;border-radius:9px;font-size:10px;padding:1px 6px;margin-right:4px}
+.pane{display:none}.pane.on{display:block}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:6px 4px;border-bottom:1px solid #eee;text-align:right;vertical-align:top}
+th{color:#777;font-weight:normal}
+.low{color:#c0392b;font-weight:bold}.zero{color:#aaa;text-decoration:line-through}
+.lk{font-size:11px;color:#5a2fb3;cursor:pointer;text-decoration:underline}
+.hint{font-size:12px;color:#666;margin-top:10px;line-height:1.8}
+.flash{animation:fl 1.2s}@keyframes fl{0%{background:#d9f8d9}100%{background:transparent}}
+.ord,.esc{border:1px solid #eee;border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12.5px;line-height:1.8}
+.tag{display:inline-block;background:#e8f7ea;color:#1c7a32;border-radius:8px;padding:0 7px;font-size:11px}
+.tag.w{background:#fff1e0;color:#b25e00}
+.empty{color:#999;font-size:12.5px;padding:14px 0;text-align:center}
+.story{width:210px;height:370px;margin:4px auto;border-radius:18px;background:linear-gradient(160deg,#833ab4,#fd1d1d,#fcb045);position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.story .em{font-size:90px}.story .nm{font-weight:bold;margin-top:6px;font-size:15px}.story .pr{font-size:13px;opacity:.95}
+.story .stk{position:absolute;bottom:34px;background:#fff;color:#2b6cff;border-radius:12px;padding:8px 16px;font-size:13px;font-weight:bold;cursor:pointer;border:0;font-family:inherit;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.story .stk:hover{transform:scale(1.05)}
+.story .hd{position:absolute;top:10px;right:12px;font-size:11px;opacity:.9}
+select{font-family:inherit;padding:6px;border:1px solid #ddd;border-radius:8px;width:100%;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="phone">
+    <div class="top"><div class="av">ف</div><div><b>فروشگاه تست</b><small>پاسخ خودکار · معمولاً سریع جواب می‌دهیم</small></div><button class="rs" id="reset">شروع دوباره</button></div>
+    <div id="chat"></div>
+    <div class="q" id="quick"></div>
+    <div class="inp"><input id="t" placeholder="پیام بنویسید..." autocomplete="off"><button id="send">ارسال</button></div>
+  </div>
+
+  <div class="side">
+    <div class="note"><b>این یک دموی نمایشی است.</b><br>
+    جواب‌ها اینجا با قاعده‌های ساده ساخته می‌شوند. در نسخه‌ی واقعی، هوش مصنوعی جواب می‌دهد، ولی <b>قیمت و موجودی همیشه از انبار (دوک)</b> خوانده می‌شود، نه از حدس ربات.</div>
+    <div class="tabs">
+      <button class="tab on" data-p="stockP">انبار زنده</button>
+      <button class="tab" data-p="ordP">سفارش‌ها<span class="badge" id="ob" style="display:none">0</span></button>
+      <button class="tab" data-p="admP">ادمین<span class="badge" id="ab" style="display:none">0</span></button>
+      <button class="tab" data-p="stoP">استوری</button>
+    </div>
+    <div class="pane on" id="stockP"><table id="stock"></table>
+      <div class="hint">با هر سفارش در چت، موجودی همین جدول کم می‌شود. «کپی» = لینک اختصاصی محصول برای استوری.</div></div>
+    <div class="pane" id="ordP"><div id="orders"></div>
+      <div class="hint">سفارش‌های ربات به این شکل وارد پنل دوک می‌شوند (منبع: اینستاگرام).</div></div>
+    <div class="pane" id="admP"><div id="escs"></div>
+      <div class="hint">وقتی ربات مطمئن نیست حدس نمی‌زند؛ پیام را اینجا برای ادمین انسانی می‌گذارد.</div></div>
+    <div class="pane" id="stoP">
+      <select id="sp"></select>
+      <div class="story" id="story"></div>
+      <div class="hint">شبیه‌سازی استوری: روی استیکر «سفارش» بزن. مشتری وارد چت همان محصول می‌شود.</div></div>
+  </div>
+</div>
+
+<script>
+const BASE=[
+ {c:'TS1',n:'تیشرت مردانه',p:450000,e:'👕',k:['تیشرت','تی شرت'],s:{S:5,M:8,L:3,XL:0}},
+ {c:'HD2',n:'هودی کلاه‌دار',p:890000,e:'🧥',k:['هودی','سویشرت'],s:{M:4,L:2,XL:6}},
+ {c:'JN3',n:'شلوار جین مردانه',p:1250000,e:'👖',k:['شلوار','جین'],s:{'30':3,'32':5,'34':2}},
+ {c:'SH4',n:'کفش کتانی',p:1650000,e:'👟',k:['کفش','کتونی','کتانی'],s:{'40':2,'41':4,'42':0,'43':3}},
+ {c:'BG5',n:'کیف دوشی',p:780000,e:'👜',k:['کیف'],s:{'تک‌سایز':7}},
+ {c:'DR6',n:'پیراهن زنانه',p:920000,e:'👗',k:['پیراهن','لباس مجلسی'],s:{S:3,M:5,L:0}},
+ {c:'SC7',n:'شال',p:350000,e:'🧣',k:['شال','روسری'],s:{'فری':12}},
+ {c:'CP8',n:'کلاه کپ',p:220000,e:'🧢',k:['کلاه','کپ'],s:{'فری':9}},
+ {c:'JK9',n:'کاپشن',p:2300000,e:'🧥',k:['کاپشن','بارونی','پافر'],s:{M:2,L:1,XL:2}},
+ {c:'SK10',n:'دامن',p:680000,e:'🩳',k:['دامن'],s:{S:4,M:4}},
+];
+let P,cart,last,step,cust,orderNo,orders,escs;
+const FREE_SHIP=1000000,SHIP=60000;
+const $=id=>document.getElementById(id);
+const nf=n=>Number(n).toLocaleString('fa-IR');
+const fmt=n=>nf(n)+' تومان';
+const fa=s=>s.replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/‌/g,' ').toLowerCase();
+const now=()=>new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
+
+function init(){
+  P=JSON.parse(JSON.stringify(BASE));cart=[];last=null;step=null;cust={};orderNo=1000;orders=[];escs=[];
+  $('chat').innerHTML='';$('quick').innerHTML='';
+  renderStock();renderOrders();renderEscs();renderStory();
+  const m=location.hash.match(/^#(?:p=)?([A-Za-z]{2}[0-9]{1,2})$/);
+  const p=m&&P.find(x=>x.c.toLowerCase()==m[1].toLowerCase());
+  if(p)fromStory(p);
+  else bot('سلام! 🌸 به فروشگاه تست خوش آمدید.\nکد محصول را بفرستید (مثلاً TS1) یا بپرسید، مثلاً «تیشرت سایز L دارید؟»',200).then(()=>setQuick(['TS1','تیشرت سایز L دارید؟','ارسال به شیراز چقدره؟','ساعت دارید؟']));
+}
+
+function add(cls,txt){const d=document.createElement('div');d.className='m '+cls;d.textContent=txt;$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
+function bot(txt,delay){
+  const ty=document.createElement('div');ty.className='typing';ty.innerHTML='<i></i><i></i><i></i>';
+  setTimeout(()=>{$('chat').appendChild(ty);$('chat').scrollTop=1e9},60);
+  const d=delay!=null?delay:Math.min(1100,450+txt.length*7);
+  return new Promise(r=>setTimeout(()=>{ty.remove();add('bot',txt);r()},d));
+}
+function say(t){add('me',t)}
+
+function renderStock(fc){
+  let h='<tr><th>کد</th><th>محصول</th><th>موجودی (سایز:تعداد)</th><th>لینک</th></tr>';
+  P.forEach(p=>{
+    const sz=Object.entries(p.s).map(([k,v])=>`<span class="${v==0?'zero':v<=2?'low':''}">${k}:${nf(v)}</span>`).join(' · ');
+    h+=`<tr class="${fc==p.c?'flash':''}"><td>${p.c}</td><td>${p.n}</td><td>${sz}</td><td><span class="lk" onclick="cp('${p.c}')">کپی</span></td></tr>`;
+  });
+  $('stock').innerHTML=h;
+}
+function renderOrders(){
+  $('ob').style.display=orders.length?'inline':'none';$('ob').textContent=nf(orders.length);
+  $('orders').innerHTML=orders.length?orders.slice().reverse().map(o=>`<div class="ord flash"><b>سفارش ${noF(o.no)}</b> <span class="tag">${o.src}</span> <span class="tag w">در انتظار پرداخت</span><br>${o.name} · ${o.phone}<br>${o.items.join('، ')}<br>مبلغ: <b>${fmt(o.total)}</b> · ${o.time}</div>`).join(''):'<div class="empty">هنوز سفارشی ثبت نشده</div>';
+}
+function renderEscs(){
+  $('ab').style.display=escs.length?'inline':'none';$('ab').textContent=nf(escs.length);
+  $('escs').innerHTML=escs.length?escs.slice().reverse().map(e=>`<div class="esc flash"><span class="tag w">نیاز به ادمین</span> ${e.time}<br>«${e.text}»<br><small style="color:#888">${e.why}</small></div>`).join(''):'<div class="empty">پیامی ارجاع نشده</div>';
+}
+function escalate(text,why){escs.push({text,why,time:now()});renderEscs()}
+function cp(c){const u=location.href.split('#')[0]+'#'+c;navigator.clipboard&&navigator.clipboard.writeText(u).catch(()=>{});prompt('لینک استوری این محصول (کپی شد):',u)}
+
+function renderStory(){
+  const sel=$('sp');if(!sel.options.length)P.forEach(p=>sel.add(new Option(p.c+' · '+p.n,p.c)));
+  const p=P.find(x=>x.c==sel.value)||P[0];
+  $('story').innerHTML=`<div class="hd">فروشگاه تست · الان</div><div class="em">${p.e}</div><div class="nm">${p.n}</div><div class="pr">${fmt(p.p)}</div><button class="stk" id="stk">🔗 سفارش بده</button>`;
+  $('stk').onclick=()=>fromStory(p);
+}
+async function fromStory(p){
+  $('chat').innerHTML='';cart=[];step=null;
+  await bot('سلام! 🌸 از استوری آمدید؟ این هم محصول:',300);card(p);setQuick(['لیست محصولات','صحبت با ادمین']);
+}
+
+function card(p){
+  const d=document.createElement('div');d.className='card';
+  const chips=Object.entries(p.s).map(([k,v])=>`<button class="chip ${v==0?'off':v<=2?'few':''}" data-s="${k}" ${v==0?'disabled':''}>${k}${v>0&&v<=2?' ⚠':''}</button>`).join('');
+  d.innerHTML=`<div class="pic">${p.e}</div><div class="b"><div class="n">${p.n}</div><div class="p">${fmt(p.p)} · کد ${p.c}</div><div class="chips">${chips}</div><div class="cc">یک سایز را بزنید تا به سفارش اضافه شود</div></div>`;
+  d.querySelectorAll('.chip:not(.off)').forEach(b=>b.onclick=()=>{say('سایز '+b.dataset.s+' '+p.n);addCart(p,b.dataset.s,1)});
+  $('chat').appendChild(d);$('chat').scrollTop=1e9;last=p;
+}
+function cartTotal(){return cart.reduce((a,i)=>a+i.p.p*i.q,0)}
+function showCart(){
+  const sub=cartTotal(),ship=sub>=FREE_SHIP?0:SHIP;
+  const d=document.createElement('div');d.className='cart';
+  d.innerHTML='<b>🛒 سفارش شما</b><br>'+cart.map(i=>`• ${i.p.n} (${i.s}) × ${nf(i.q)} — ${fmt(i.p.p*i.q)}`).join('<br>')+`<div class="tot">کالاها: ${fmt(sub)}<br>ارسال: ${ship?fmt(ship):'رایگان'}<br>جمع: ${fmt(sub+ship)}</div>`;
+  $('chat').appendChild(d);$('chat').scrollTop=1e9;
+}
+function addCart(p,s,q){
+  q=q||1;
+  if(p.s[s]<=0){bot('متأسفانه سایز '+s+' این محصول تمام شده.');return}
+  const inCart=cart.filter(i=>i.p==p&&i.s==s).reduce((a,i)=>a+i.q,0);
+  if(inCart+q>p.s[s]){bot('از سایز '+s+' این محصول فقط '+nf(p.s[s])+' عدد داریم'+(inCart?' و '+nf(inCart)+' عدد در سفارش شماست.':'.'));return}
+  const ex=cart.find(i=>i.p==p&&i.s==s);ex?ex.q+=q:cart.push({p,s,q});
+  bot('✅ «'+p.n+'» سایز '+s+(q>1?' ('+nf(q)+' عدد)':'')+' به سفارش اضافه شد.').then(()=>{showCart();setQuick(['ثبت نهایی سفارش','محصول دیگر','پاک کردن سفارش'])});
+}
+function setQuick(a){$('quick').innerHTML='';a.forEach(x=>{const b=document.createElement('button');b.className='chip';b.textContent=x;b.onclick=()=>{$('t').value=x;send()};$('quick').appendChild(b)})}
+
+function sizeIn(t,p){
+  const map={'ایکس لارج':'XL','لارج':'L','مدیوم':'M','اسمال':'S','فری سایز':'فری','فری':'فری','تک سایز':'تک‌سایز'};
+  for(const k in map)if(t.includes(k)&&map[k] in p.s)return map[k];
+  for(const x of t.split(/[^a-z0-9؀-ۿ]+/i)){const u=x.toUpperCase();if(u in p.s)return u}
+  return null;
+}
+function findProduct(t){
+  for(const p of P){if(new RegExp('(^|[^a-z0-9])'+p.c.toLowerCase()+'($|[^a-z0-9])').test(t))return p}
+  for(const p of P)if(p.k.some(k=>t.includes(fa(k))))return p;
+  return null;
+}
+function qtyIn(t){const m=t.match(/(\d+)\s*(تا|عدد)(?![؀-ۿ])/);return m?Math.min(+m[1],20):1}
+const noF=n=>Number(n).toLocaleString('fa-IR',{useGrouping:false});
+
+async function handle(raw){
+  const t=fa(raw.trim());if(!t)return;
+  if(step)return flow(raw.trim());
+  if(/^(سلام|درود|hi|hello)/.test(t)&&t.length<12){await bot('سلام! 🌸 به فروشگاه تست خوش آمدید.\nکد محصول را بفرستید یا بپرسید، مثلاً «تیشرت سایز L دارید؟»');return}
+  if(/اپراتور|ادمین|پشتیبان|آدم|انسان|صحبت با/.test(t)){escalate(raw,'مشتری خودش ادمین خواست');await bot('حتماً. پیام شما برای ادمین فروشگاه فرستاده شد و به‌زودی جواب می‌دهد. 🙏');return}
+  if(/سفارش من|سبد|فاکتور/.test(t)){if(!cart.length){await bot('سفارش شما خالی است.');return}showCart();setQuick(['ثبت نهایی سفارش','محصول دیگر']);return}
+  if(/ثبت نهایی|تسویه|پرداخت|نهایی/.test(t)){
+    if(!cart.length){await bot('سفارش شما خالی است. اول یک محصول انتخاب کنید.');return}
+    step='name';await bot('برای ثبت سفارش، نام و نام خانوادگی را بفرستید:');return}
+  if(/پاک کردن/.test(t)){cart=[];await bot('سفارش پاک شد.');setQuick(['لیست محصولات']);return}
+  if(/محصول دیگر|لیست|همه محصولات|چی دارید|چه چیزی|کاتالوگ/.test(t)){
+    await bot('محصولات ما:\n'+P.map(p=>`${p.c} · ${p.n} · ${fmt(p.p)}`).join('\n')+'\n\nکد یا اسم محصول را بفرستید.');return}
+  const p=findProduct(t);
+  if(/ارسال|پست|تیپاکس|حمل|شیراز|مشهد|اصفهان|تبریز|شهر/.test(t)){
+    await bot('ارسال به همه‌ی شهرها انجام می‌شود (۲ تا ۵ روز کاری).\nهزینه‌ی ارسال '+fmt(SHIP)+' است و برای خرید بالای '+fmt(FREE_SHIP)+' رایگان.');
+    const q=p||(/قیمت|چند|چقدر|میشه|می شه/.test(t)?last:null);
+    if(q){last=q;await bot('«'+q.n+'»: '+fmt(q.p)+(q.p>=FREE_SHIP?' (ارسال رایگان)':' + ارسال '+fmt(SHIP)+' = '+fmt(q.p+SHIP)))}
+    return}
+  if(/رنگ/.test(t)){escalate(raw,'درباره‌ی رنگ در انبار اطلاعاتی نیست');await bot('اطلاعات رنگ را مطمئن نیستم و حدس نمی‌زنم. پیام شما برای ادمین فرستاده شد تا جواب دقیق بدهد. 🙏');return}
+  if(p){
+    last=p;const s=sizeIn(t,p),wants=/سفارش|میخوام|می خوام|میخرم|می خرم|بخرم|بردار|بده/.test(t);
+    if(/قیمت|چند|چقدر|تومن|تومان/.test(t)&&!s){await bot('«'+p.n+'»: '+fmt(p.p));card(p);return}
+    if(s){
+      const n=p.s[s];
+      if(n>3){await bot('بله، «'+p.n+'» سایز '+s+' موجود است ✅\nقیمت: '+fmt(p.p))}
+      else if(n>0){await bot('بله، ولی از سایز '+s+' فقط '+nf(n)+' عدد مانده ⚠️\nقیمت: '+fmt(p.p))}
+      else{const ok=Object.entries(p.s).filter(([k,v])=>v>0).map(([k])=>k).join('، ');await bot('سایز '+s+' این محصول تمام شده. 😔\nسایزهای موجود: '+(ok||'—'))}
+      if(wants&&n>0)addCart(p,s,qtyIn(t));else{card(p);if(n>0)setQuick(['ثبت نهایی سفارش','لیست محصولات'])}
+      return}
+    if(wants){await bot('عالیه! سایز را انتخاب کنید:');card(p);return}
+    await bot('بفرمایید:');card(p);return}
+  if(/(ساعت|عینک|جوراب|مانتو|ژاکت|بلوز|گوشی|لپ تاپ)/.test(t)){
+    await bot('این محصول در لیست فروشگاه ما نیست. 🙏\nمحصولات موجود:\n'+P.map(p=>p.n).join('، '));setQuick(['لیست محصولات','صحبت با ادمین']);return}
+  if(/سفارش|میخوام|می خوام|بخرم/.test(t)&&last){await bot('سایز را انتخاب کنید:');card(last);return}
+  if(/تخفیف|ارزون|حراج|مرجوع|تعویض|گارانتی|ضمانت|اصل|کیفیت|جنس/.test(t)){
+    escalate(raw,'درباره‌ی سیاست یا اطلاعاتی که در انبار نیست');
+    await bot('این مورد را مطمئن نیستم و حدس نمی‌زنم. پیام شما برای ادمین فروشگاه فرستاده شد تا جواب دقیق بدهد. 🙏');return}
+  await bot('من فقط درباره‌ی محصولات این فروشگاه می‌توانم کمک کنم. 🙂\nکد محصول را بفرستید یا بنویسید «لیست محصولات».');setQuick(['لیست محصولات','صحبت با ادمین']);
+}
+
+async function flow(v){
+  if(step=='name'){cust.name=v;step='phone';await bot('شماره‌ی موبایل:');return}
+  if(step=='phone'){
+    const ph=fa(v).replace(/\s/g,'');
+    if(!/^09\d{9}$/.test(ph)){await bot('شماره درست نیست. مثل 09123456789 بفرستید:');return}
+    cust.phone=ph;step='addr';await bot('آدرس کامل:');return}
+  if(step=='addr'){
+    cust.addr=v;step=null;
+    if(cart.some(i=>i.p.s[i.s]<i.q)){await bot('متأسفانه در همین لحظه موجودی یکی از اقلام تمام شد. سفارش را بازبینی کنید.');cart=[];renderStock();return}
+    const sub=cartTotal(),ship=sub>=FREE_SHIP?0:SHIP,tot=sub+ship,no=++orderNo;
+    const lines=cart.map(i=>`${i.p.n} (${i.s}) × ${nf(i.q)}`);
+    cart.forEach(i=>{i.p.s[i.s]-=i.q});
+    orders.push({no,name:cust.name,phone:cust.phone,items:lines,total:tot,src:'اینستاگرام',time:now()});
+    const lastCode=cart[cart.length-1].p.c;cart=[];renderStock(lastCode);renderOrders();
+    await bot('✅ سفارش شما ثبت شد!\nشماره‌ی سفارش: '+noF(no)+'\n'+lines.map(x=>'• '+x).join('\n')+'\nجمع کالاها: '+fmt(sub)+'\nارسال: '+(ship?fmt(ship):'رایگان')+'\nمبلغ قابل پرداخت: '+fmt(tot)+'\n\nپرداخت: کارت‌به‌کارت و ارسال رسید همین‌جا.');
+    setQuick(['لیست محصولات']);}
+}
+
+function send(){const v=$('t').value;if(!v.trim())return;$('t').value='';say(v);handle(v)}
+$('send').onclick=send;$('t').addEventListener('keydown',e=>{if(e.key=='Enter')send()});
+$('reset').onclick=init;
+$('sp').onchange=renderStory;
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');$(b.dataset.p).classList.add('on')});
+init();
+</script>
+</body>
+</html>
