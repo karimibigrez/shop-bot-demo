@@ -177,6 +177,8 @@ body{background:#eef0f4}
     جواب‌ها اینجا با قاعده‌های ساده ساخته می‌شوند. در نسخه‌ی واقعی، هوش مصنوعی جواب می‌دهد، ولی <b>قیمت و موجودی همیشه از انبار (دوک)</b> خوانده می‌شود، نه از حدس ربات.</div>
     <button class="chip closeb" id="closeSide">✕ بستن پشت صحنه</button>
     <button class="chip" id="reset" style="margin-bottom:10px">↻ شروع دوباره</button>
+    <button class="chip" onclick="sampleReset()" style="margin-bottom:10px">انبار و سفارش‌ها: برگشت به نمونه</button>
+    <a class="chip" href="panel.html" style="margin-bottom:10px;display:inline-block;text-decoration:none;color:inherit">🏪 پنل فروشگاه‌دار</a>
     <div class="tabs">
       <button class="tab on" data-p="stockP">انبار زنده</button>
       <button class="tab" data-p="ordP">سفارش‌ها<span class="badge" id="ob" style="display:none">0</span></button>
@@ -226,7 +228,8 @@ const fa=s=>s.replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/
 const now=()=>new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
 
 function init(){
-  P=JSON.parse(JSON.stringify(BASE));cart=[];last=null;step=null;cust={};orderNo=1000;orders=[];escs=[];cur=null;$('gate').classList.remove('on');
+  P=loadP()||JSON.parse(JSON.stringify(BASE));cart=[];last=null;step=null;cust={};orders=[];escs=[];cur=null;$('gate').classList.remove('on');
+  orderNo=Math.max(1000,...loadO().map(o=>o.no));
   resetChat();$('quick').innerHTML='';
   renderStock();renderOrders();renderEscs();renderStory();
   const m=location.hash.match(/^#(?:p=)?([A-Za-z]{2}[0-9]{1,2})$/);
@@ -265,7 +268,19 @@ function bot(txt,delay){
 }
 function say(t){add('me',t)}
 
+// ذخیره‌ی کالاها و سفارش‌ها (مشترک با «پنل فروشگاه»)
+function loadP(){try{const a=JSON.parse(localStorage.getItem('sb_products'));if(Array.isArray(a)&&a.length)return a}catch(e){}return null}
+function loadO(){try{const a=JSON.parse(localStorage.getItem('sb_orders'));if(Array.isArray(a))return a}catch(e){}return []}
+function saveP(){try{localStorage.setItem('sb_products',JSON.stringify(P))}catch(e){}}
+function persistOrders(){
+  try{const all=loadO();orders.forEach(o=>{
+    const r={no:o.no,name:o.name,phone:o.phone,addr:o.addr,items:o.items,total:o.total,status:o.status,time:o.time};
+    const i=all.findIndex(x=>x.no==o.no);if(i>=0){r.sent=all[i].sent;all[i]=r}else all.push(r)});
+    localStorage.setItem('sb_orders',JSON.stringify(all))}catch(e){}
+}
+function sampleReset(){localStorage.removeItem('sb_products');localStorage.removeItem('sb_orders');init();document.querySelector('.side').classList.remove('open')}
 function renderStock(fc){
+  saveP();
   let h='<tr><th>کد</th><th>محصول</th><th>موجودی (سایز:تعداد)</th><th>لینک</th></tr>';
   P.forEach(p=>{
     const sz=Object.entries(p.s).map(([k,v])=>`<span class="${v==0?'zero':v<=2?'low':''}">${k}:${nf(v)}</span>`).join(' · ');
@@ -274,6 +289,7 @@ function renderStock(fc){
   $('stock').innerHTML=h;
 }
 function renderOrders(){
+  persistOrders();
   $('ob').style.display=orders.length?'inline':'none';$('ob').textContent=nf(orders.length);
   const ST={wait:['w','منتظر پرداخت · رزرو ۱۵ دقیقه'],cardwait:['r','منتظر واریز کارت‌به‌کارت · تأیید خودکار'],paid:['g','پرداخت‌شده ✅'],expired:['x','رزرو منقضی شد']};
   $('orders').innerHTML=orders.length?orders.slice().reverse().map(o=>{
@@ -304,7 +320,7 @@ async function fromStory(p){
 function card(p){
   const d=document.createElement('div');d.className='card';
   const chips=Object.entries(p.s).map(([k,v])=>`<button class="chip ${v==0?'off':v<=2?'few':''}" data-s="${k}" ${v==0?'disabled':''}>${k}${v>0&&v<=2?' ⚠':''}</button>`).join('');
-  d.innerHTML=`<div class="pic">${p.e}</div><div class="b"><div class="n">${p.p.toLocaleString('en-US')} تومان</div><div class="p">${p.n} · کد ${p.c}</div><div class="chips">${chips}</div><div class="cc">یک سایز را بزنید تا به سفارش اضافه شود</div></div>`;
+  d.innerHTML=`<div class="pic" ${p.img?`style="background:url(${p.img}) center/cover"`:''}>${p.img?'':p.e}</div><div class="b"><div class="n">${p.p.toLocaleString('en-US')} تومان</div><div class="p">${p.n} · کد ${p.c}</div><div class="chips">${chips}</div><div class="cc">یک سایز را بزنید تا به سفارش اضافه شود</div></div>`;
   d.querySelectorAll('.chip:not(.off)').forEach(b=>b.onclick=()=>{say('سایز '+b.dataset.s+' '+p.n);addCart(p,b.dataset.s,1)});
   pushRow(d,'bot');last=p;
 }
@@ -357,7 +373,7 @@ async function handle(raw){
     if(!cart.length){await bot('سفارش شما خالی است. اول یک محصول انتخاب کنید.');return}
     step='name';await bot('برای ثبت سفارش، نام و نام خانوادگی را بفرستید:');return}
   if(/پاک کردن/.test(t)){cart=[];await bot('سفارش پاک شد.');setQuick(['لیست محصولات']);return}
-  if(/محصول دیگر|لیست|همه محصولات|چی دارید|چه چیزی|کاتالوگ/.test(t)){
+  if(/محصول دیگر|لیست|همه محصولات|(?:^|\s)چی دارید|چه چیزی|کاتالوگ/.test(t)){
     await bot('محصولات ما:\n'+P.map(p=>`${p.c} · ${p.n} · ${fmt(p.p)}`).join('\n')+'\n\nکد یا اسم محصول را بفرستید.');return}
   const p=findProduct(t)||((last&&sizeIn(t,last)&&/سایز|دارید|موجود|هست|داره/.test(t))?last:null);
   if(/ارسال|پست|تیپاکس|حمل|شیراز|مشهد|اصفهان|تبریز|شهر/.test(t)){
