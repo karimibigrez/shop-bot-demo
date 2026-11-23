@@ -41,6 +41,7 @@ input:focus{outline:none;border-color:#3b5bdb}
 .x{background:none;border:0;font-size:24px;cursor:pointer;color:#c33;padding:6px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip.sel{background:#3b5bdb;color:#fff}
+.hs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;margin:0 0 4px}.hs .chip{flex:none}
 .chip{background:#fff;border:2px solid #3b5bdb;color:#3b5bdb;border-radius:14px;padding:8px 16px;font-size:20px;font-family:inherit;cursor:pointer}
 .err{background:#fde8e8;color:#b42318;border-radius:14px;padding:12px;font-weight:bold;margin:10px 0}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#17a34a;color:#fff;padding:14px 24px;border-radius:30px;font-size:20px;font-weight:bold;z-index:9;box-shadow:0 4px 16px rgba(0,0,0,.25)}
@@ -59,16 +60,16 @@ input:focus{outline:none;border-color:#3b5bdb}
 <script>
 const KEY='sb_products',OKEY='sb_orders';
 const BASE=[
- {c:'TS1',n:'تیشرت مردانه',p:450000,e:'👕',k:['تیشرت','تی شرت'],s:{S:5,M:8,L:3,XL:0}},
- {c:'HD2',n:'هودی کلاه‌دار',p:890000,e:'🧥',k:['هودی','سویشرت'],s:{M:4,L:2,XL:6}},
- {c:'JN3',n:'شلوار جین مردانه',p:1250000,e:'👖',k:['شلوار','جین'],s:{'30':3,'32':5,'34':2}},
- {c:'SH4',n:'کفش کتانی',p:1650000,e:'👟',k:['کفش','کتونی','کتانی'],s:{'40':2,'41':4,'42':0,'43':3}},
- {c:'BG5',n:'کیف دوشی',p:780000,e:'👜',k:['کیف'],s:{'تک‌سایز':7}},
- {c:'DR6',n:'پیراهن زنانه',p:920000,e:'👗',k:['پیراهن','لباس مجلسی'],s:{S:3,M:5,L:0}},
- {c:'SC7',n:'شال',p:350000,e:'🧣',k:['شال','روسری'],s:{'فری':12}},
- {c:'CP8',n:'کلاه کپ',p:220000,e:'🧢',k:['کلاه','کپ'],s:{'فری':9}},
- {c:'JK9',n:'کاپشن',p:2300000,e:'🧥',k:['کاپشن','بارونی','پافر'],s:{M:2,L:1,XL:2}},
- {c:'SK10',n:'دامن',p:680000,e:'🩳',k:['دامن'],s:{S:4,M:4}},
+ {c:'TS1',cat:'لباس',n:'تیشرت مردانه',p:450000,e:'👕',k:['تیشرت','تی شرت'],s:{S:5,M:8,L:3,XL:0}},
+ {c:'HD2',cat:'لباس',n:'هودی کلاه‌دار',p:890000,e:'🧥',k:['هودی','سویشرت'],s:{M:4,L:2,XL:6}},
+ {c:'JN3',cat:'لباس',n:'شلوار جین مردانه',p:1250000,e:'👖',k:['شلوار','جین'],s:{'30':3,'32':5,'34':2}},
+ {c:'SH4',cat:'کفش',n:'کفش کتانی',p:1650000,e:'👟',k:['کفش','کتونی','کتانی'],s:{'40':2,'41':4,'42':0,'43':3}},
+ {c:'BG5',cat:'اکسسوری',n:'کیف دوشی',p:780000,e:'👜',k:['کیف'],s:{'تک‌سایز':7}},
+ {c:'DR6',cat:'لباس',n:'پیراهن زنانه',p:920000,e:'👗',k:['پیراهن','لباس مجلسی'],s:{S:3,M:5,L:0}},
+ {c:'SC7',cat:'اکسسوری',n:'شال',p:350000,e:'🧣',k:['شال','روسری'],s:{'فری':12}},
+ {c:'CP8',cat:'اکسسوری',n:'کلاه کپ',p:220000,e:'🧢',k:['کلاه','کپ'],s:{'فری':9}},
+ {c:'JK9',cat:'لباس',n:'کاپشن',p:2300000,e:'🧥',k:['کاپشن','بارونی','پافر'],s:{M:2,L:1,XL:2}},
+ {c:'SK10',cat:'لباس',n:'دامن',p:680000,e:'🩳',k:['دامن'],s:{S:4,M:4}},
 ];
 const clone=o=>JSON.parse(JSON.stringify(o));
 const $=id=>document.getElementById(id);
@@ -84,7 +85,7 @@ function orders(){const a=load(OKEY);return Array.isArray(a)?a:[]}
 function saveOrders(a){localStorage.setItem(OKEY,JSON.stringify(a))}
 const EMOS=['👕','👖','🧥','👟','👜','🧣','🧢','👗','🩳','🎁','📦','💍'];
 const PRESETS=['S','M','L','XL','XXL','38','39','40','41','42','43','44','فری','تک‌سایز'];
-let scr='home',ed=null,msg='',confirmDel=false,toastT,q='',flt='all',shown=20,ordTab='todo',lq='';
+let scr='home',ed=null,msg='',confirmDel=false,toastT,q='',flt='all',shown=20,ordTab='todo',lq='',openQ={},bulkTxt='',bulkCat='';
 function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
 function go(s){scr=s;msg='';confirmDel=false;render();window.scrollTo(0,0)}
 function stockText(p){
@@ -105,12 +106,13 @@ function render(){
     <div style="text-align:center">${confirmDel?`<div class="card">همه‌ی کالاها و سفارش‌ها پاک شود و نمونه‌ها برگردد؟<button class="btn red" onclick="resetAll()">بله، پاک کن</button><button class="btn" onclick="confirmDel=false;render()">نه</button></div>`:`<button class="tiny" onclick="confirmDel=true;render()">برگرداندن همه‌چیز به حالت نمونه</button>`}</div>`;
   }
   else if(scr=='prods'){
-    const nLow=prods.filter(isLow).length;
+    const nLow=prods.filter(isLow).length,cats=catList();
     a.innerHTML=`<div class="top"><button class="back" onclick="go('home')">← برگشت</button></div><h2>📦 کالاها <span style="font-weight:normal;font-size:18px;color:#666">(${nf(prods.length)} کالا)</span></h2>
     <button class="btn green" onclick="newProd()">➕ کالای جدید</button>
     <input type="text" id="q" value="${esc(q)}" placeholder="🔍 اسم کالا را بنویس تا پیدا شود" oninput="q=this.value;shown=20;renderPList()" style="margin-bottom:10px">
-    <div class="chips" style="margin:0 0 12px"><button class="chip ${flt=='all'?'sel':''}" onclick="flt='all';shown=20;render()">همه</button><button class="chip ${flt=='low'?'sel':''}" onclick="flt='low';shown=20;render()">⚠ کم یا تمام‌شده (${nf(nLow)})</button></div>
-    <div id="plist"></div>`;
+    <div class="chips hs"><button class="chip ${flt=='all'?'sel':''}" onclick="flt='all';shown=20;render()">همه</button>${cats.map(c=>`<button class="chip ${flt=='c:'+c[0]?'sel':''}" onclick="flt='c:${esc(c[0])}';shown=20;render()">${esc(c[0])} (${nf(c[1])})</button>`).join('')}<button class="chip ${flt=='low'?'sel':''}" style="border-color:#c2410c;color:${flt=='low'?'#fff':'#c2410c'};${flt=='low'?'background:#c2410c':''}" onclick="flt='low';shown=20;render()">⚠ کم یا تمام‌شده (${nf(nLow)})</button></div>
+    <div id="plist" style="margin-top:12px"></div>
+    <button class="btn" style="margin-top:18px" onclick="go('bulk')">📥 افزودن چند کالا با هم</button>`;
     renderPList();
   }
   else if(scr=='edit'){
@@ -124,14 +126,26 @@ function render(){
     <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div class="photo-prev" style="${ed.img?`background-image:url(${ed.img})`:''}">${ed.img?'':esc(ed.e)}</div>
     <div><label class="btn blue" style="margin:0;padding:12px 18px;font-size:19px;cursor:pointer">📷 عکس بگذار<input type="file" accept="image/*" style="display:none" onchange="pickPhoto(this)"></label>${ed.img?'<button class="tiny" onclick="ed.img=null;render()">عکس را بردار</button>':''}</div></div>
     ${ed.img?'':`<div class="hint">اگر عکس نداری، یکی از این شکل‌ها را بزن:</div><div class="emos">${EMOS.map(x=>`<span class="emo ${x==ed.e?'on':''}" onclick="ed.e='${x}';render()">${x}</span>`).join('')}</div>`}
-    <label>۴. چند تا داری؟</label>
+    <label>۴. دسته (اختیاری)</label>
+    <input type="text" id="fc" value="${esc(ed.cat||'')}" placeholder="مثلاً: لباس" oninput="ed.cat=this.value">
+    ${catList().length?`<div class="chips">${catList().map(c=>`<button class="chip" onclick="ed.cat='${esc(c[0])}';$('fc').value=ed.cat">${esc(c[0])}</button>`).join('')}</div>`:''}
+    <label>۵. چند تا داری؟</label>
     <div class="hint">برای هر سایز یا مدل، تعداد را با + و − بزن. تمام شد؟ صفر بگذار.</div>
     <div style="margin-top:8px">${Object.entries(ed.s).map(([k,v])=>`<div class="srow"><b>${esc(k)}</b><div class="cnt"><button onclick="chg('${esc(k)}',-1)">−</button><span>${nf(v)}</span><button onclick="chg('${esc(k)}',1)">+</button></div><button class="x" onclick="delSize('${esc(k)}')">✖</button></div>`).join('')||'<div class="hint">هنوز سایزی نیست. زیر را بزن.</div>'}</div>
     <div class="hint" style="margin-top:10px">➕ یک سایز اضافه کن:</div>
     <div class="chips">${PRESETS.filter(x=>!(x in ed.s)).map(x=>`<button class="chip" onclick="addSize('${x}')">${x}</button>`).join('')}</div>
     <button class="btn green" style="margin-top:26px" onclick="saveProd()">✅ ذخیره</button>
+    ${isNew?'':`<button class="btn" onclick="dupProd()">🧬 کپی این کالا (برای کالای مشابه)</button>`}
     ${isNew?'':`<button class="btn" onclick="cp(new URL('./',location.href).href+'#${esc(ed.c)}')">📋 کپی لینک این کالا</button>`}
     ${isNew?'':(confirmDel?`<div class="card">این کالا برای همیشه پاک شود؟<button class="btn red" onclick="delProd()">بله، پاک کن</button><button class="btn" onclick="confirmDel=false;render()">نه</button></div>`:`<button class="btn red" onclick="confirmDel=true;render()">🗑 پاک کردن این کالا</button>`)}`;
+  }
+  else if(scr=='bulk'){
+    a.innerHTML=`<div class="top"><button class="back" onclick="go('prods')">← برگشت</button></div><h2>📥 افزودن چند کالا با هم</h2>
+    ${msg?`<div class="err">${msg}</div>`:''}
+    <div class="card" style="line-height:2">هر خط = یک کالا. این‌طور بنویس:<div class="lnk" style="direction:rtl;text-align:right">اسم کالا ، قیمت ، تعداد</div>مثال:<div class="lnk" style="direction:rtl;text-align:right">تیشرت سفید ، 450000 ، 10<br>کیف چرم ، 780000 ، 5</div><div class="hint">از اکسل هم می‌توانی چند خط را کپی کنی و اینجا بچسبانی.</div></div>
+    <textarea id="bt" rows="8" style="width:100%;border:2px solid #cfd2dc;border-radius:14px;padding:14px;font-size:20px;font-family:inherit" oninput="bulkTxt=this.value">${esc(bulkTxt)}</textarea>
+    <label>دسته (اختیاری، برای همه‌ی این کالاها)</label><input type="text" value="${esc(bulkCat)}" placeholder="مثلاً: لباس" oninput="bulkCat=this.value">
+    <button class="btn green" style="margin-top:18px" onclick="doBulk()">✅ همه را اضافه کن</button>`;
   }
   else if(scr=='orders'){
     const all=orders().slice().sort((x,y)=>y.no-x.no),nTodo=all.filter(o=>o.status=='paid'&&!o.sent).length;
@@ -164,14 +178,18 @@ function render(){
 const norm=s=>digits(String(s||'')).replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/‌/g,' ').toLowerCase().trim();
 function isLow(p){const v=Object.values(p.s);return !v.length||v.some(x=>x<=2)}
 function find(qq){const t=norm(qq);return t?prods.filter(p=>norm(p.n).includes(t)||norm(p.c).includes(t)):prods}
+function catList(){const m={};prods.forEach(p=>{if(p.cat)m[p.cat]=(m[p.cat]||0)+1});return Object.entries(m)}
 function renderPList(){
-  let list=find(q);if(flt=='low')list=list.filter(isLow);
+  let list=find(q);if(flt=='low')list=list.filter(isLow);else if(flt.startsWith('c:'))list=list.filter(p=>p.cat==flt.slice(2));
   const el=$('plist');if(!el)return;
   if(!list.length){el.innerHTML=`<div class="empty">${prods.length?'چیزی پیدا نشد.':'هنوز کالایی نیست. دکمه‌ی سبز را بزنید.'}</div>`;return}
-  el.innerHTML=list.slice(0,shown).map(p=>{const tot=Object.values(p.s).reduce((a,v)=>a+v,0),low=isLow(p);
-    return `<div class="card" style="padding:10px"><div class="prow" onclick="editProd('${p.c}')"><div class="thumb" style="width:50px;height:50px;font-size:28px;${p.img?`background-image:url(${p.img})`:''}">${p.img?'':esc(p.e||'📦')}</div><div style="min-width:0"><div class="pn" style="font-size:19px">${esc(p.n)}</div><div class="pm">${nf(p.p)} تومان · ${tot?nf(tot)+' عدد':'<span class="low">تمام شد</span>'}${low&&tot?' <span class="low">⚠ کم</span>':''}</div></div></div></div>`}).join('')
+  el.innerHTML=list.slice(0,shown).map(p=>{const tot=Object.values(p.s).reduce((a,v)=>a+v,0),low=isLow(p),op=openQ[p.c];
+    return `<div class="card" style="padding:10px"><div class="prow"><div class="thumb" onclick="editProd('${p.c}')" style="width:50px;height:50px;font-size:28px;${p.img?`background-image:url(${p.img})`:''}">${p.img?'':esc(p.e||'📦')}</div><div style="min-width:0;flex:1" onclick="editProd('${p.c}')"><div class="pn" style="font-size:19px">${esc(p.n)}</div><div class="pm">${nf(p.p)} تومان · ${tot?nf(tot)+' عدد':'<span class="low">تمام شد</span>'}${low&&tot?' <span class="low">⚠ کم</span>':''}</div></div><button class="chip" style="padding:8px 12px;font-size:17px" onclick="tq('${p.c}')">${op?'✖ بستن':'⚡ موجودی'}</button></div>
+    ${op?Object.entries(p.s).map(([k,v])=>`<div class="srow" style="margin:8px 0 0"><b>${esc(k)}</b><div class="cnt"><button onclick="qchg('${p.c}','${esc(k)}',-1)">−</button><span>${nf(v)}</span><button onclick="qchg('${p.c}','${esc(k)}',1)">+</button></div></div>`).join(''):''}</div>`}).join('')
     +(list.length>shown?`<button class="btn" onclick="shown+=20;renderPList()">نمایش بیشتر (${nf(list.length-shown)} کالای دیگر)</button>`:'');
 }
+function tq(c){openQ[c]=!openQ[c];renderPList()}
+function qchg(c,k,d){const p=prods.find(x=>x.c==c);if(!p)return;p.s[k]=Math.max(0,(p.s[k]||0)+d);save();renderPList()}
 function renderLinkRes(){
   const el=$('lres');if(!el)return;const base=new URL('./',location.href).href;
   if(!norm(lq)){el.innerHTML='';return}
@@ -202,9 +220,18 @@ function saveProd(){
   if(!ed.n){msg='اسم کالا را بنویسید.';render();window.scrollTo(0,0);return}
   if(!ed.p||ed.p<=0){msg='قیمت را بنویسید (فقط عدد).';render();window.scrollTo(0,0);return}
   if(!Object.keys(ed.s).length){msg='حداقل یک سایز و تعداد بگذارید (اگر سایز ندارد «تک‌سایز» را بزنید).';render();window.scrollTo(0,0);return}
-  const words=ed.n.split(/\s+/).filter(w=>w.length>2);ed.k=[ed.n,...words];
+  ed.cat=(ed.cat||'').trim();const words=ed.n.split(/\s+/).filter(w=>w.length>2);ed.k=[ed.n,...words];
   const i=prods.findIndex(p=>p.c==ed.c);if(i>=0)prods[i]=ed;else prods.push(ed);
   save();toast('ذخیره شد ✅');go('prods');
+}
+function dupProd(){const c=nextCode();ed=Object.assign(clone(ed),{c,n:ed.n+' (کپی)'});msg='';confirmDel=false;scr='edit';render();window.scrollTo(0,0);toast('کپی ساخته شد؛ تغییرش بده و ذخیره کن')}
+function doBulk(){
+  const lines=bulkTxt.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);let add=[],bad=0;
+  lines.forEach(l=>{const parts=digits(l).split(/[,،\t]/).map(x=>x.trim());const n=parts[0],pr=+(parts[1]||'').replace(/\D/g,''),cn=+(parts[2]||'').replace(/\D/g,'');
+    if(!n||!pr)bad++;else add.push({n,p:pr,cn:cn||0})});
+  if(!add.length){msg='هیچ خطی درست نبود. هر خط باید «اسم ، قیمت ، تعداد» باشد.';render();return}
+  add.forEach(x=>{const c=nextCode();prods.push({c,cat:(bulkCat||'').trim(),n:x.n,p:x.p,e:'📦',img:null,k:[x.n,...x.n.split(/\s+/).filter(w=>w.length>2)],s:{'تک‌سایز':x.cn}})});
+  save();bulkTxt='';toast(nf(add.length)+' کالا اضافه شد ✅'+(bad?' ('+nf(bad)+' خط ناقص رد شد)':''));go('prods');
 }
 function delProd(){prods=prods.filter(p=>p.c!=ed.c);save();toast('پاک شد');go('prods')}
 function sent(no){const a=orders();const o=a.find(x=>x.no==no);if(o){o.sent=true;saveOrders(a)}toast('ثبت شد ✅');render()}
