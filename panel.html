@@ -124,6 +124,47 @@ input:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.92);color:#fff;padding:12px 22px;border-radius:26px;font-size:17px;font-weight:600;z-index:90;white-space:nowrap;animation:fade .2s}
 .sbig{display:flex;gap:14px;align-items:center;margin-top:12px;padding:10px;background:#f7f8fc;border-radius:16px}
 .sbig .th{width:104px;height:104px;font-size:52px;border-radius:14px}
+.brand{display:none}
+/* ===== کامپیوتر: منوی کنار صفحه و صفحه‌ی پهن ===== */
+@media (min-width:900px){
+  html,body{background:#fff}
+  body{font-size:18px}
+  .app{max-width:none;box-shadow:none;padding:0 270px 40px 0}
+  .bar{display:none}
+  .tabs{top:0;bottom:0;right:0;left:auto;transform:none;width:270px;max-width:none;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:6px;padding:26px 16px;border-top:0;border-left:1px solid #e6e6e6;background:#fff;backdrop-filter:none}
+  .brand{display:flex;align-items:center;gap:12px;order:-2;padding:4px 8px 22px}
+  .brand b{font-size:20px;display:block;line-height:1.2}.brand small{color:var(--mut);font-size:14px}
+  .tab{flex:none;flex-direction:row;gap:14px;font-size:18px;padding:12px 14px;border-radius:12px;justify-content:flex-start;color:#333}
+  .tab:hover{background:#f4f4f4}
+  .tab.on{background:#f0f0f0;color:var(--ink)}
+  .tab svg{width:26px;height:26px}
+  .tab .dot{position:static;margin-right:auto;border:0}
+  .tab.plus{order:-1;background:var(--grad);color:#fff;border-radius:14px;margin-bottom:14px;padding:12px 14px;box-shadow:0 4px 14px rgba(214,41,118,.28)}
+  .tab.plus:hover{filter:brightness(1.05);background:var(--grad)}
+  .tab.plus .pl{width:26px;height:26px;margin:0;background:none;box-shadow:none;border-radius:0}
+  .tab.plus svg{width:24px;height:24px}
+  main>.pad,main>div{max-width:1120px;margin-inline:auto}
+  .pad{padding:30px 34px}
+  h2{font-size:26px;margin-bottom:14px}
+  .prof{gap:36px;padding:0 0 18px}
+  .prof .in{width:120px!important;height:120px!important;font-size:50px!important}
+  .stats b{font-size:30px}.stats span{font-size:17px}
+  .bio{font-size:18px}.bio b{font-size:22px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+  .tile{border-radius:14px}
+  .tile .cap b{font-size:16px}.tile .cap span{font-size:14px}
+  .hl button{width:92px}.hl .in{width:76px;height:76px;font-size:34px}.hl .nm{max-width:92px;font-size:15px}
+  .pillsearch{max-width:520px}
+  .seg{max-width:460px}
+  .ord .hd{padding:6px 4px;border-radius:12px}.ord .hd:hover{background:#fafafa}
+  .ord .in{width:56px;height:56px}
+  main>div .card,.card{max-width:760px}
+  .sheet{inset:4vh 0;height:92vh;max-width:660px;border-radius:20px;overflow:hidden;box-shadow:0 0 0 100vmax rgba(0,0,0,.5)}
+  .sheet .pic{max-width:300px}
+  .toast{bottom:34px}
+  .todo{max-width:760px}
+}
+@media (min-width:1300px){.grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}}
 </style>
 </head>
 <body>
@@ -188,7 +229,7 @@ function go(t){tab=t;openOrd=null;confirmReset=false;render();window.scrollTo(0,
 function renderTabs(){
   const n=newCount();
   const T=(id,ic,lb)=>`<button class="tab ${tab==id?'on':''}" onclick="go('${id}')">${ic}<span>${lb}</span>${id=='orders'&&n?`<i class="dot">${nf(n)}</i>`:''}</button>`;
-  $('tabs').innerHTML=T('home',IC.home,'خانه')+T('prods',IC.grid,'کالاها')+`<button class="tab plus" onclick="newProd()"><span class="pl">${IC.plus}</span><span>کالای جدید</span></button>`+T('orders',IC.bag,'سفارش‌ها')+T('links',IC.link,'لینک');
+  $('tabs').innerHTML=`<div class="brand"><span class="ring"><span class="in" style="width:46px;height:46px;font-size:20px">ف</span></span><div><b>فروشگاه تست</b><small>پنل فروشگاه</small></div></div>`+T('home',IC.home,'خانه')+T('prods',IC.grid,'کالاها')+`<button class="tab plus" onclick="newProd()"><span class="pl">${IC.plus}</span><span>کالای جدید</span></button>`+T('orders',IC.bag,'سفارش‌ها')+T('links',IC.link,'لینک');
 }
 function render(){
   renderTabs();

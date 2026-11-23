@@ -328,7 +328,7 @@ function cartTotal(){return cart.reduce((a,i)=>a+i.p.p*i.q,0)}
 function showCart(){
   const sub=cartTotal(),ship=sub>=FREE_SHIP?0:SHIP;
   const d=document.createElement('div');d.className='cart';
-  d.innerHTML='<b>🛒 سفارش شما</b><br>'+cart.map(i=>`• ${i.p.n} (${i.s}) × ${nf(i.q)} — ${fmt(i.p.p*i.q)}`).join('<br>')+`<div class="tot">کالاها: ${fmt(sub)}<br>ارسال: ${ship?fmt(ship):'رایگان'}<br>جمع: ${fmt(sub+ship)}</div>`;
+  d.innerHTML='<b>🛒 سفارش شما</b><br>'+cart.map(i=>`• ${i.p.n} · سایز ${i.s} · ${nf(i.q)} عدد — ${fmt(i.p.p*i.q)}`).join('<br>')+`<div class="tot">کالاها: ${fmt(sub)}<br>ارسال: ${ship?fmt(ship):'رایگان'}<br>جمع: ${fmt(sub+ship)}</div>`;
   pushRow(d,'bot');
 }
 function addCart(p,s,q){
@@ -438,7 +438,7 @@ async function flow(v){
 function invoice(){
   const sub=cartTotal(),ship=sub>=FREE_SHIP?0:SHIP;
   const d=document.createElement('div');d.className='cart';
-  d.innerHTML='<b>🧾 فاکتور شما (پیش‌نویس)</b><br>'+cart.map(i=>`• ${i.p.n} (${i.s}) × ${nf(i.q)} — ${fmt(i.p.p*i.q)}`).join('<br>')+`<div class="tot">کالاها: ${fmt(sub)}<br>ارسال: ${ship?fmt(ship):'رایگان'}<br>جمع: ${fmt(sub+ship)}</div><div class="cinfo">👤 ${esc(cust.name)}<br>📱 ${esc(cust.phone)}<br>📍 ${esc(cust.addr)}</div><div class="h2">اطلاعات را بررسی کنید. تا «ثبت نهایی» نزنید سفارش قطعی نمی‌شود.</div>`;
+  d.innerHTML='<b>🧾 فاکتور شما (پیش‌نویس)</b><br>'+cart.map(i=>`• ${i.p.n} · سایز ${i.s} · ${nf(i.q)} عدد — ${fmt(i.p.p*i.q)}`).join('<br>')+`<div class="tot">کالاها: ${fmt(sub)}<br>ارسال: ${ship?fmt(ship):'رایگان'}<br>جمع: ${fmt(sub+ship)}</div><div class="cinfo">👤 ${esc(cust.name)}<br>📱 ${esc(cust.phone)}<br>📍 ${esc(cust.addr)}</div><div class="h2">اطلاعات را بررسی کنید. تا «ثبت نهایی» نزنید سفارش قطعی نمی‌شود.</div>`;
   pushRow(d,'bot');
 }
 async function showInvoice(){
@@ -451,7 +451,7 @@ async function finalize(){
   step=null;
   if(cart.some(i=>i.p.s[i.s]<i.q)){await bot('متأسفانه در همین لحظه موجودی یکی از اقلام تمام شد. سفارش را بازبینی کنید.');cart=[];renderStock();return}
   const sub=cartTotal(),ship=sub>=FREE_SHIP?0:SHIP,tot=sub+ship,no=++orderNo;
-  const lines=cart.map(i=>`${i.p.n} (${i.s}) × ${nf(i.q)}`);
+  const lines=cart.map(i=>`${i.p.n} · سایز ${i.s} · ${nf(i.q)} عدد`);
   cart.forEach(i=>{i.p.s[i.s]-=i.q});
   const o={no,name:cust.name,phone:cust.phone,addr:cust.addr,items:lines,total:tot,src:'اینستاگرام',time:now(),status:'wait',cartItems:cart.map(i=>({p:i.p,s:i.s,q:i.q}))};
   orders.push(o);cur=o;const lastCode=cart[cart.length-1].p.c;cart=[];renderStock(lastCode);renderOrders();

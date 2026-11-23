@@ -259,13 +259,13 @@ async function productCard(){
 }
 async function cartCard(){
   const d=document.createElement('div');d.className='cart';
-  d.innerHTML=`<b>🛒 سفارش شما</b><br>• تیشرت مردانه (L) × ۱ — ${fmt(450000)}<div class="tot">کالاها: ${fmt(450000)}<br>ارسال: ${fmt(60000)}<br>جمع: ${fmt(510000)}</div>`;
+  d.innerHTML=`<b>🛒 سفارش شما</b><br>• تیشرت مردانه · سایز L · ۱ عدد — ${fmt(450000)}<div class="tot">کالاها: ${fmt(450000)}<br>ارسال: ${fmt(60000)}<br>جمع: ${fmt(510000)}</div>`;
   pushRow(d,'bot');await sleep(900);
 }
 
 async function invoiceCard(){
   const d=document.createElement('div');d.className='cart';
-  d.innerHTML=`<b>🧾 فاکتور شما (پیش‌نویس)</b><br>• تیشرت مردانه (L) × ۱ — ${fmt(450000)}<div class="tot">کالاها: ${fmt(450000)}<br>ارسال: ${fmt(60000)}<br>جمع: ${fmt(510000)}</div><div class="cinfo">👤 رضا محمدی<br>📱 ۰۹۱۲۰۰۰۰۰۰۰۰<br>📍 شیراز، بلوار تست</div><div class="h2">اطلاعات را بررسی کنید. تا «ثبت نهایی» نزنید سفارش قطعی نمی‌شود.</div>`;
+  d.innerHTML=`<b>🧾 فاکتور شما (پیش‌نویس)</b><br>• تیشرت مردانه · سایز L · ۱ عدد — ${fmt(450000)}<div class="tot">کالاها: ${fmt(450000)}<br>ارسال: ${fmt(60000)}<br>جمع: ${fmt(510000)}</div><div class="cinfo">👤 رضا محمدی<br>📱 ۰۹۱۲۰۰۰۰۰۰۰۰<br>📍 شیراز، بلوار تست</div><div class="h2">اطلاعات را بررسی کنید. تا «ثبت نهایی» نزنید سفارش قطعی نمی‌شود.</div>`;
   pushRow(d,'bot');await sleep(900);
 }
 async function payChoice(){
