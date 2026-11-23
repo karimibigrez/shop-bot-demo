@@ -200,16 +200,16 @@ body{background:#eef0f4}
 
 <script>
 const BASE=[
- {c:'TS1',n:'تیشرت مردانه',p:450000,e:'👕',k:['تیشرت','تی شرت'],s:{S:5,M:8,L:3,XL:0}},
- {c:'HD2',n:'هودی کلاه‌دار',p:890000,e:'🧥',k:['هودی','سویشرت'],s:{M:4,L:2,XL:6}},
+ {c:'TS1',img:'img/ts1.jpg',n:'تیشرت مردانه',p:450000,e:'👕',k:['تیشرت','تی شرت'],s:{S:5,M:8,L:3,XL:0}},
+ {c:'HD2',img:'img/hd2.jpg',n:'هودی کلاه‌دار',p:890000,e:'🧥',k:['هودی','سویشرت'],s:{M:4,L:2,XL:6}},
  {c:'JN3',n:'شلوار جین مردانه',p:1250000,e:'👖',k:['شلوار','جین'],s:{'30':3,'32':5,'34':2}},
- {c:'SH4',n:'کفش کتانی',p:1650000,e:'👟',k:['کفش','کتونی','کتانی'],s:{'40':2,'41':4,'42':0,'43':3}},
- {c:'BG5',n:'کیف دوشی',p:780000,e:'👜',k:['کیف'],s:{'تک‌سایز':7}},
- {c:'DR6',n:'پیراهن زنانه',p:920000,e:'👗',k:['پیراهن','لباس مجلسی'],s:{S:3,M:5,L:0}},
+ {c:'SH4',img:'img/sh4.jpg',n:'کفش کتانی',p:1650000,e:'👟',k:['کفش','کتونی','کتانی'],s:{'40':2,'41':4,'42':0,'43':3}},
+ {c:'BG5',img:'img/bg5.jpg',n:'کیف دوشی',p:780000,e:'👜',k:['کیف'],s:{'تک‌سایز':7}},
+ {c:'DR6',img:'img/dr6.jpg',n:'پیراهن زنانه',p:920000,e:'👗',k:['پیراهن','لباس مجلسی'],s:{S:3,M:5,L:0}},
  {c:'SC7',n:'شال',p:350000,e:'🧣',k:['شال','روسری'],s:{'فری':12}},
  {c:'CP8',n:'کلاه کپ',p:220000,e:'🧢',k:['کلاه','کپ'],s:{'فری':9}},
- {c:'JK9',n:'کاپشن',p:2300000,e:'🧥',k:['کاپشن','بارونی','پافر'],s:{M:2,L:1,XL:2}},
- {c:'SK10',n:'دامن',p:680000,e:'🩳',k:['دامن'],s:{S:4,M:4}},
+ {c:'JK9',img:'img/jk9.jpg',n:'کاپشن',p:2300000,e:'🧥',k:['کاپشن','بارونی','پافر'],s:{M:2,L:1,XL:2}},
+ {c:'SK10',img:'img/sk10.jpg',n:'دامن',p:680000,e:'🩳',k:['دامن'],s:{S:4,M:4}},
 ];
 // رنگ‌های موجود هر محصول (۱ = موجود، ۰ = تمام) و مدل‌های مشابه برای پیشنهاد
 const COL={TS1:{'سفید':1,'مشکی':0,'طوسی':1},HD2:{'مشکی':1,'سرمه‌ای':1,'طوسی':0},JN3:{'آبی':1,'مشکی':1},SH4:{'سفید':1,'مشکی':0},DR6:{'مشکی':1,'قرمز':0,'سبز':1}};
@@ -269,7 +269,7 @@ function bot(txt,delay){
 function say(t){add('me',t)}
 
 // ذخیره‌ی کالاها و سفارش‌ها (مشترک با «پنل فروشگاه»)
-function loadP(){try{const a=JSON.parse(localStorage.getItem('sb_products'));if(Array.isArray(a)&&a.length)return a}catch(e){}return null}
+function loadP(){try{const a=JSON.parse(localStorage.getItem('sb_products'));if(Array.isArray(a)&&a.length){a.forEach(p=>{const b=BASE.find(x=>x.c==p.c);if(b&&p.img===undefined&&b.img)p.img=b.img});return a}}catch(e){}return null}
 function loadO(){try{const a=JSON.parse(localStorage.getItem('sb_orders'));if(Array.isArray(a))return a}catch(e){}return []}
 function saveP(){try{localStorage.setItem('sb_products',JSON.stringify(P))}catch(e){}}
 function persistOrders(){
