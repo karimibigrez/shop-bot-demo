@@ -170,7 +170,7 @@ function render(){
     a.innerHTML=`<div class="top"><button class="back" onclick="go('home')">← برگشت</button></div><h2>🔗 لینک فروشگاه</h2>
     <div class="card"><b>لینک اصلی فروشگاه</b><div class="lnk">${esc(base)}</div><button class="btn blue" onclick="cp('${esc(base)}')">📋 کپی لینک</button><div class="hint">این را در بایو اینستاگرام بگذارید.</div></div>
     <div class="card"><b>متن آماده برای پیام خودکار دایرکت</b><div class="lnk" style="direction:rtl;text-align:right">${esc(welcome)}</div><button class="btn blue" onclick="cp(${JSON.stringify(welcome).replace(/"/g,'&quot;')})">📋 کپی متن</button></div>
-    <div class="card"><b>لینک یک کالای مشخص</b><div class="hint">برای استوری یا پست. اسم کالا را بنویس:</div>
+    <div class="card"><b>لینک یک کالای مشخص</b><div class="hint">برای استوری یا پست. عکس کالا را ببین و «کپی لینک» را بزن. کالا زیاد است؟ اسمش را بنویس:</div>
     <input type="text" id="lq" value="${esc(lq)}" placeholder="🔍 اسم کالا" oninput="lq=this.value;renderLinkRes()" style="margin-top:8px"><div id="lres"></div></div>`;
     renderLinkRes();
   }
@@ -192,9 +192,8 @@ function tq(c){openQ[c]=!openQ[c];renderPList()}
 function qchg(c,k,d){const p=prods.find(x=>x.c==c);if(!p)return;p.s[k]=Math.max(0,(p.s[k]||0)+d);save();renderPList()}
 function renderLinkRes(){
   const el=$('lres');if(!el)return;const base=new URL('./',location.href).href;
-  if(!norm(lq)){el.innerHTML='';return}
-  const l=find(lq).slice(0,5);
-  el.innerHTML=l.length?l.map(p=>`<div style="margin-top:10px"><div class="pn" style="font-size:19px">${esc(p.n)}</div><button class="btn blue" style="padding:12px;font-size:19px;margin:6px 0 0" onclick="cp('${esc(base)}#${esc(p.c)}')">📋 کپی لینک این کالا</button></div>`).join(''):'<div class="empty" style="padding:12px">چیزی پیدا نشد.</div>';
+  const l=find(lq).slice(0,6);
+  el.innerHTML=l.length?l.map(p=>`<div style="display:flex;gap:14px;align-items:center;margin-top:12px;padding:10px;background:#f7f8fc;border-radius:16px"><div class="thumb" style="width:110px;height:110px;font-size:56px;border-radius:16px;${p.img?`background-image:url(${p.img})`:''}">${p.img?'':esc(p.e||'📦')}</div><div style="flex:1;min-width:0"><div class="pn" style="font-size:20px">${esc(p.n)}</div><div class="pm">${nf(p.p)} تومان</div><button class="btn blue" style="padding:12px;font-size:19px;margin:8px 0 0" onclick="cp('${esc(base)}#${esc(p.c)}')">📋 کپی لینک</button></div></div>`).join('')+(find(lq).length>6?`<div class="hint" style="margin-top:10px">${nf(find(lq).length-6)} کالای دیگر هم هست؛ اسمش را دقیق‌تر بنویس.</div>`:''):'<div class="empty" style="padding:12px">چیزی پیدا نشد.</div>';
 }
 function cp(t){
   const done=()=>toast('کپی شد ✅');
